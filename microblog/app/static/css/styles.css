@@ -1,0 +1,50 @@
+/* styles for home page——Liz */
+.search-container {
+    position: relative;
+    width: 120%;
+    max-width: 800px;
+
+}
+
+.search-input {
+    width: 100%;
+    border: 1px solid #ddd;
+    padding: 10px 15px 10px 35px;
+    border-radius: 20px outline: none;
+    box-shadow: none;
+}
+
+.search-icon {
+    position: absolute;
+    top: 50%;
+    right: 10px;
+    transform: translateY(-50%);
+    color: #aaa;
+}
+
+.btn-orange {
+    background-color: #FFBE98;
+    border-color: orange;
+}
+
+.btn-orange:hover {
+    background-color: #E78B2D;
+    border-color: #E78B2D;
+}
+
+.nav-link i {
+    margin-right: 5px;
+    margin-left: 5px;
+    font-size: 1.2em;
+    color: #e5937c;
+}
+
+.nav-link i:hover {
+    color: #E78B2D;
+}
+
+.navbar.bg-light {
+    background-color: #fff !important;
+}
+
+/* styles for home page——Liz end */
