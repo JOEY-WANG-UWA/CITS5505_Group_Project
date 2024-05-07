@@ -9,3 +9,4 @@ class Config:
     MAIL_SERVER = os.environ.get('MAIL_SERVER')
     MAIL_PORT = int(os.environ.get('MAIL_PORT') or 25)
     ADMINS = ['joey.wang.uwa@gmail.com']
+    ELASTICSEARCH_URL = os.environ.get('ELASTICSEARCH_URL')
