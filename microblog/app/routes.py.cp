@@ -33,20 +33,8 @@ def before_request():
 
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
-def index():
-    page = request.args.get('page', 1, type=int)
-    query = sa.select(Post).order_by(Post.timestamp.desc())
-    posts = db.paginate(query, page=page,
-                        per_page=app.config['POSTS_PER_PAGE'], error_out=False)
-    next_url = url_for('index', page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('index', page=posts.prev_num) \
-        if posts.has_prev else None
-    return render_template("index.html", title='Home', posts=posts.items,
-                           next_url=next_url, prev_url=prev_url)
-@app.route('/explore')
 @login_required
-def explore():
+def index():
     form = PostForm()
     if form.validate_on_submit():
         post = Post(body=form.post.data, author=current_user)
@@ -61,10 +49,10 @@ def explore():
         if posts.has_next else None
     prev_url = url_for('index', page=posts.prev_num) \
         if posts.has_prev else None
-    return render_template('index.html', title='Explore', form=form,
+    return render_template('index.html', title='Home', form=form,
                            posts=posts.items, next_url=next_url,
                            prev_url=prev_url)
-                           
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -181,6 +169,19 @@ def unfollow(username):
         return redirect(url_for('user', username=username))
     else:
         return redirect(url_for('index'))
+
+@app.route('/explore')
+def explore():
+    page = request.args.get('page', 1, type=int)
+    query = sa.select(Post).order_by(Post.timestamp.desc())
+    posts = db.paginate(query, page=page,
+                        per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+    next_url = url_for('explore', page=posts.next_num) \
+        if posts.has_next else None
+    prev_url = url_for('explore', page=posts.prev_num) \
+        if posts.has_prev else None
+    return render_template("index.html", title='Explore', posts=posts.items,
+                           next_url=next_url, prev_url=prev_url)
 
 @app.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():

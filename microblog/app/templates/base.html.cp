@@ -27,44 +27,29 @@
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
               <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="{{ url_for('index') }}" title="Home">
-                  <i class="fas fa-home fa-lg"></i>
-                </a>
+                <a class="nav-link" aria-current="page" href="{{ url_for('index') }}">Home</a>
               </li>
               <li class="nav-item">
                 <a class="nav-link" aria-current="page" href="{{ url_for('explore') }}">Explore</a>
               </li>
             </ul>
 	          {% if g.search_form %}
-                <form class="navbar-form col-md-6 d-flex mx-auto" method="get"
+                <form class="navbar-form navbar-left" method="get"
                         action="{{ url_for('search') }}">
-                    <div class="input-group my-2 my-lg-0">
+                    <div class="form-group">
                         {{ g.search_form.q(size=20, class='form-control',
                             placeholder=g.search_form.q.label.text) }}
-                        <div class="input-group-append">
-                          <button class="btn btn-outline-secondary" type="submit">
-                              <i class="fas fa-search"></i>
-                          </button>
-                        </div>
                     </div>
                 </form>
             {% endif %}
             <ul class="navbar-nav mb-2 mb-lg-0">
               {% if current_user.is_anonymous %}
               <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="{{ url_for('login') }}" title="Log in">
-                  <i class="fas fa-sign-in-alt fa-lg"></i>
-                </a>
-              </li>
-              <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="{{ url_for('register') }}" title="Sign up">
-                  <i class="fas fa-user-plus fa-lg"></i>
-                </a>
+                <a class="nav-link" aria-current="page" href="{{ url_for('login') }}">Login</a>
               </li>
               {% else %}
-	          <li class="nav-item">
-              <a class="nav-link" aria-current="page" href="{{ url_for('messages') }}">
-                <i class="fas fa-envelope fa-lg" title="Messages"></i>
+	      <li class="nav-item">
+              <a class="nav-link" aria-current="page" href="{{ url_for('messages') }}">{{ _('Messages') }}
                 {% set unread_message_count = current_user.unread_message_count() %}
                 <span id="message_count" class="badge text-bg-danger"
                       style="visibility: {% if unread_message_count %}visible
@@ -74,17 +59,10 @@
               </a>
             </li>
               <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="{{ url_for('user', username=current_user.username) }}">
-                  <i class="fas fa-user fa-lg" title="Profile"></i>
-                </a>
+                <a class="nav-link" aria-current="page" href="{{ url_for('user', username=current_user.username) }}">Profile</a>
               </li>
               <li class="nav-item">
-                <button class="btn btn-orange" type="button">Upload</button>
-            </li>
-              <li class="nav-item">
-                <a class="nav-link" aria-current="page" href="{{ url_for('logout') }}" title="Log out">
-                  <i class="fas fa-sign-out-alt fa-lg"></i>
-                </a>
+                <a class="nav-link" aria-current="page" href="{{ url_for('logout') }}">Logout</a>
               </li>
               {% endif %}
             </ul>
