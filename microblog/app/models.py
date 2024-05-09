@@ -24,9 +24,11 @@ followers = sa.Table(
               primary_key=True)
 )
 
+
 @login.user_loader
 def load_user(id):
     return db.session.get(User, int(id))
+
 
 class User(UserMixin, db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
@@ -141,7 +143,8 @@ class User(UserMixin, db.Model):
         except:
             return
         return db.session.get(User, id)
-    
+
+
 class SearchableMixin(object):
     @classmethod
     def search(cls, expression, page, per_page):
@@ -181,8 +184,10 @@ class SearchableMixin(object):
         for obj in db.session.scalars(sa.select(cls)):
             add_to_index(cls.__tablename__, obj)
 
+
 db.event.listen(db.session, 'before_commit', SearchableMixin.before_commit)
 db.event.listen(db.session, 'after_commit', SearchableMixin.after_commit)
+
 
 class Post(SearchableMixin, db.Model):
     __searchable__ = ['body']
@@ -197,6 +202,7 @@ class Post(SearchableMixin, db.Model):
 
     def __repr__(self):
         return '<Post {}>'.format(self.body)
+
 
 class Message(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
@@ -218,6 +224,7 @@ class Message(db.Model):
     def __repr__(self):
         return '<Message {}>'.format(self.body)
 
+
 class Notification(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     name: so.Mapped[str] = so.mapped_column(sa.String(128), index=True)
@@ -231,6 +238,7 @@ class Notification(db.Model):
     def get_data(self):
         return json.loads(str(self.payload_json))
 
+
 class Upload(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
@@ -240,30 +248,36 @@ class Upload(db.Model):
         index=True, default=lambda: datetime.now(timezone.utc))
     hashtag: so.Mapped[str] = so.mapped_column(sa.String(140))
 
+
 class Upload_detail(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     upload_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Upload.id),
-                                               index=True)
+                                                 index=True)
     upload_item: so.Mapped[str] = so.mapped_column(sa.String(140))
     description: so.Mapped[str] = so.mapped_column(sa.String(300))
+    upload = db.relationship(
+        'Upload', backref=db.backref('details', lazy=True))
+
 
 class Favourite(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     upload_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Upload.id),
-                                               index=True)
+                                                 index=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
                                                index=True)
     favourite_time: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
 
+
 class Collection(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     upload_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Upload.id),
-                                               index=True)
+                                                 index=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
                                                index=True)
     collect_time: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
+
 
 class Comment(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
