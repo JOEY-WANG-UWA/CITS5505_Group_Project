@@ -22,7 +22,11 @@ from app.forms import SearchForm
 from app.forms import MessageForm
 from app.models import Message
 from app.models import Notification
+from app.models import Upload
+from app.models import Upload_detail
+from app.models import Favourite
 from flask_babel import _, get_locale
+
 
 @app.before_request
 def before_request():
@@ -31,7 +35,13 @@ def before_request():
         db.session.commit()
         g.search_form = SearchForm()
 
+
 @app.route('/', methods=['GET', 'POST'])
+def home():
+    details = Upload_detail.query.all()
+    return render_template("base.html", details=details)
+
+
 @app.route('/index', methods=['GET', 'POST'])
 def index():
     page = request.args.get('page', 1, type=int)
@@ -44,7 +54,9 @@ def index():
         if posts.has_prev else None
     return render_template("index.html", title='Home', posts=posts.items,
                            next_url=next_url, prev_url=prev_url)
-@app.route('/explore')
+
+
+@app.route('/explore', methods=['GET', 'POST'])
 @login_required
 def explore():
     form = PostForm()
@@ -64,7 +76,8 @@ def explore():
     return render_template('index.html', title='Explore', form=form,
                            posts=posts.items, next_url=next_url,
                            prev_url=prev_url)
-                           
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
@@ -83,10 +96,12 @@ def login():
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
+
 @app.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('index'))
+
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -94,13 +109,15 @@ def register():
         return redirect(url_for('index'))
     form = RegistrationForm()
     if form.validate_on_submit():
-        user = User(username=form.username.data, email=form.email.data, location=form.location.data)
+        user = User(username=form.username.data,
+                    email=form.email.data, location=form.location.data)
         user.set_password(form.password.data)
         db.session.add(user)
         db.session.commit()
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
+
 
 @app.route('/user/<username>')
 @login_required
@@ -119,11 +136,13 @@ def user(username):
     return render_template('user.html', user=user, posts=posts.items,
                            next_url=next_url, prev_url=prev_url, form=form)
 
+
 @app.before_request
 def before_request():
     if current_user.is_authenticated:
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
+
 
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
@@ -140,6 +159,7 @@ def edit_profile():
         form.about_me.data = current_user.about_me
     return render_template('edit_profile.html', title='Edit Profile',
                            form=form)
+
 
 @app.route('/follow/<username>', methods=['POST'])
 @login_required
@@ -182,6 +202,7 @@ def unfollow(username):
     else:
         return redirect(url_for('index'))
 
+
 @app.route('/reset_password_request', methods=['GET', 'POST'])
 def reset_password_request():
     if current_user.is_authenticated:
@@ -196,6 +217,7 @@ def reset_password_request():
         return redirect(url_for('login'))
     return render_template('reset_password_request.html',
                            title='Reset Password', form=form)
+
 
 @app.route('/reset_password/<token>', methods=['GET', 'POST'])
 def reset_password(token):
@@ -212,11 +234,12 @@ def reset_password(token):
         return redirect(url_for('login'))
     return render_template('reset_password.html', form=form)
 
+
 @app.route('/search')
 @login_required
 def search():
     if not g.search_form.validate():
-        return redirect(url_for('explore'))
+        return redirect(url_for('index'))
     page = request.args.get('page', 1, type=int)
     posts, total = Post.search(g.search_form.q.data, page,
                                app.config['POSTS_PER_PAGE'])
@@ -226,6 +249,7 @@ def search():
         if page > 1 else None
     return render_template('search.html', title=_('Search'), posts=posts,
                            next_url=next_url, prev_url=prev_url)
+
 
 @app.route('/send_message/<recipient>', methods=['GET', 'POST'])
 @login_required
@@ -243,6 +267,7 @@ def send_message(recipient):
         return redirect(url_for('user', username=recipient))
     return render_template('send_message.html', title=_('Send Message'),
                            form=form, recipient=recipient)
+
 
 @app.route('/messages')
 @login_required
@@ -263,6 +288,7 @@ def messages():
     return render_template('messages.html', messages=messages.items,
                            next_url=next_url, prev_url=prev_url)
 
+
 @app.route('/notifications')
 @login_required
 def notifications():
@@ -275,3 +301,15 @@ def notifications():
         'data': n.get_data(),
         'timestamp': n.timestamp
     } for n in notifications]
+
+
+@app.route('/view-details', methods=['GET'])
+def view_details():
+    # details = sa.select(Upload_detail).order_by(Upload_detail.id.desc())
+    details = Upload_detail.query.all()
+    uploads = sa.select(Upload).order_by(Upload.id.desc())
+    # uploads = Upload.query.all()
+    likes = sa.select(Favourite).order_by(Favourite.id.desc())
+    # likes = Favourite.query.all()
+    # Passing all data sets to the template
+    return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
