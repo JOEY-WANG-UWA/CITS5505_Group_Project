@@ -144,7 +144,7 @@ class User(UserMixin, db.Model):
         except:
             return
         return db.session.get(User, id)
-    
+
 class SearchableMixin(object):
     @classmethod
     def search(cls, expression, page, per_page):
@@ -233,6 +233,14 @@ class Notification(db.Model):
 
     def get_data(self):
         return json.loads(str(self.payload_json))
+
+class Follow(db.Model):
+    follower_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('user.id'), primary_key=True)
+    followed_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('user.id'), primary_key=True)
+    created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.now(timezone.utc))
+
+    follower: so.Mapped['User'] = so.relationship(foreign_keys=[follower_id], back_populates='following', lazy='joined')
+    followed: so.Mapped['User'] = so.relationship(foreign_keys=[followed_id], back_populates='followers', lazy='joined')
 
 class Upload(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
