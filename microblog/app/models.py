@@ -43,7 +43,7 @@ class User(UserMixin, db.Model):
 
     posts: so.WriteOnlyMapped['Post'] = so.relationship(
         back_populates='author')
-
+    avatar: so.Mapped[str] = so.mapped_column(sa.String(120), index=True)
     about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
     last_seen: so.Mapped[Optional[datetime]] = so.mapped_column(
         default=lambda: datetime.now(timezone.utc))
@@ -59,6 +59,9 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def avatar(self, size):
+        def avatar(self, size=128):
+            if self.avatar_url:
+                return self.avatar_url
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return f'https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}'
 
@@ -246,7 +249,12 @@ class Upload(db.Model):
     title: so.Mapped[str] = so.mapped_column(sa.String(140))
     upload_time: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
-    hashtag: so.Mapped[str] = so.mapped_column(sa.String(140))
+    hashtag: so.Mapped[str] = so.mapped_column(sa.String(140)),
+    description: so.Mapped[str] = so.mapped_column(sa.String(300))
+    updetails = db.relationship(
+        'Upload_detail', backref='uploads', lazy='dynamic')
+    collections = db.relationship(
+        'Collection', backref='uploads', lazy='dynamic')
 
 
 class Upload_detail(db.Model):
@@ -254,9 +262,6 @@ class Upload_detail(db.Model):
     upload_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Upload.id),
                                                  index=True)
     upload_item: so.Mapped[str] = so.mapped_column(sa.String(140))
-    description: so.Mapped[str] = so.mapped_column(sa.String(300))
-    upload = db.relationship(
-        'Upload', backref=db.backref('details', lazy=True))
 
 
 class Favourite(db.Model):
@@ -286,4 +291,5 @@ class Comment(db.Model):
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
                                                index=True)
     comment_time: so.Mapped[datetime] = so.mapped_column(
-        index=True, default=lambda: datetime.now(timezone.utc))
+        index=True, default=lambda: datetime.now(timezone.utc)),
+    comment_content: so.Mapped[str] = so.mapped_column(sa.String(300))
