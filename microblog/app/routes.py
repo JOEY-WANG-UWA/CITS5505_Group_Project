@@ -4,6 +4,7 @@ from app.forms import LoginForm
 from flask_login import current_user, login_user
 import sqlalchemy as sa
 from app.models import User
+from sqlalchemy.orm import joinedload
 from flask_login import logout_user
 from flask import request, g
 from urllib.parse import urlsplit
@@ -14,7 +15,7 @@ from datetime import datetime, timezone
 from app.forms import EditProfileForm
 from app.forms import PostForm
 from app.forms import EmptyForm
-from app.models import Post
+from app.models import Post, Collection, Favourite, Follow
 from app.forms import ResetPasswordRequestForm
 from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
@@ -26,6 +27,12 @@ from app.models import Upload
 from app.models import Upload_detail
 from app.models import Favourite
 from flask_babel import _, get_locale
+from app.forms import UploadForm
+from werkzeug.utils import secure_filename
+import os
+from .models import Upload, Upload_detail, Collection, Comment
+from collections import defaultdict
+from sqlalchemy import select, func
 
 
 @app.before_request
@@ -36,10 +43,20 @@ def before_request():
         g.search_form = SearchForm()
 
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    details = Upload_detail.query.all()
-    return render_template("base.html", details=details)
+@app.route('/')
+@app.route('/gallery')
+def gallery():
+    uploads = Upload.query.all()
+    grouped_details = defaultdict(list)
+    for upload in uploads:
+        for detail in upload.updetails:
+            grouped_details[upload.id].append(detail.upload_item)
+    uploads_with_collection = db.session.query(
+        Upload,
+        func.count(Collection.id).label('collect_count')
+    ).outerjoin(Collection, Collection.upload_id == Upload.id).group_by(Upload.id).all()
+    print(uploads_with_collection)
+    return render_template('main/gallery.html', grouped_details=grouped_details, uploads=uploads, uploads_with_collection=uploads_with_collection)
 
 
 @app.route('/index', methods=['GET', 'POST'])
@@ -135,6 +152,121 @@ def user(username):
     form = EmptyForm()
     return render_template('user.html', user=user, posts=posts.items,
                            next_url=next_url, prev_url=prev_url, form=form)
+
+
+@app.route('/user/<username>/check_collections')
+@login_required
+def check_collections(username):
+    user = db.first_or_404(sa.select(User).where(User.username == username))
+    page = request.args.get('page', 1, type=int)
+    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
+    query = (
+        sa.select(Upload, Upload_detail, Collection)
+        # Linking collections to user
+        .join(Collection, Collection.user_id == user.id)
+        # Linking uploads to their details
+        .join(Upload_detail, Upload_detail.upload_id == Upload.id)
+        # Linking collections to uploads
+        .join(Collection, Collection.upload_id == Upload.id)
+        # Filtering collections by the user
+        .filter(Collection.user_id == user.id)
+        # Ordering by the collection time
+        .order_by(Collection.collect_time.desc())
+    )
+    # Pagination setup
+    pagination = db.paginate(
+        query,
+        page=page,
+        # Assume 'per_page' is set to 10, adjust as necessary
+        per_page=app.config['POSTS_PER_PAGE']
+    )
+
+    results = pagination.items
+    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
+
+
+@app.route('/user/<username>/likes')
+@login_required
+def show_likes(username):
+    user = db.first_or_404(sa.select(User).where(User.username == username))
+    page = request.args.get('page', 1, type=int)
+    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
+    query = (
+        sa.select(Upload, Upload_detail, Favourite)
+        # Linking collections to user
+        .join(Favourite, Favourite.user_id == user.id)
+        # Linking uploads to their details
+        .join(Upload_detail, Upload_detail.upload_id == Upload.id)
+        # Linking collections to uploads
+        .join(Favourite, Favourite.upload_id == Upload.id)
+        # Filtering collections by the user
+        .filter(Favourite.user_id == user.id)
+        # Ordering by the collection time
+        .order_by(Favourite.favourite_time.desc())
+    )
+    # Pagination setup
+    pagination = db.paginate(
+        query,
+        page=page,
+        # Assume 'per_page' is set to 10, adjust as necessary
+        per_page=app.config['POSTS_PER_PAGE']
+    )
+    results = pagination.items
+    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
+
+
+@app.route('/user/<username>/following')
+@login_required
+def show_following(username):
+    user = db.first_or_404(sa.select(User).filter_by(username=username))
+    page = request.args.get('page', 1, type=int)
+    pagination = db.paginate(
+        sa.select(User)
+        .join(Follow, Follow.followed_id == User.id)
+        .filter_by(
+            follower_id=user.id),
+        page=page,
+        per_page=app.config['POSTS_PER_PAGE']
+    )
+    following = pagination.items
+    return render_template('user/following.html', user=user, pagination=pagination, following=following)
+
+
+@app.route('/user/<username>/following')
+@login_required
+def show_notes(username):
+    user = db.first_or_404(sa.select(User).filter_by(username=username))
+    page = request.args.get('page', 1, type=int)
+    pagination = db.paginate(
+        sa.select(User)
+        # Linking uploads to their details
+        .join(Upload, Upload.user.id == user.id)
+        # Linking collections to uploads
+        .join(Upload_detail, Upload_detail.upload_id == Upload.id)
+        .filter_by(
+            user_id=User.id),
+        page=page,
+        per_page=app.config['POSTS_PER_PAGE']
+    )
+    following = pagination.items
+    return render_template('user/collections.html', user=user, pagination=pagination, following=following)
+
+
+@app.route('/user/<username>/followers')
+@login_required
+def show_following(username):
+    user = db.first_or_404(sa.select(User).filter_by(username=username))
+    page = request.args.get('page', 1, type=int)
+    pagination = db.paginate(
+        sa.select(User)
+        .join(Follow, Follow.follower_id == User.id)
+        .filter_by(
+            followed_id=user.id),
+        page=page,
+        per_page=app.config['POSTS_PER_PAGE']
+    )
+    following = pagination.items
+    return render_template('user/followers.html', user=user, pagination=pagination, following=following)
 
 
 @app.before_request
@@ -313,3 +445,40 @@ def view_details():
     # likes = Favourite.query.all()
     # Passing all data sets to the template
     return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
+
+
+@app.route('/upload', methods=['GET', 'POST'])
+def upload():
+    form = UploadForm()
+    if form.validate_on_submit():
+        files = request.files.getlist('photos')
+        titles = request.form.getlist('titles')
+        descriptions = request.form.getlist('descriptions')
+        hashtags = request.form.getlist('hashtags')
+
+        for i, file in enumerate(files):
+            if file:
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+
+                new_upload = Upload(
+                    user_id=1,
+                    title=titles[i],
+                    hashtag=hashtags[i],
+                    upload_time=datetime.utcnow()
+                )
+                db.session.add(new_upload)
+                db.session.commit()
+
+                new_detail = Upload_detail(
+                    upload_id=new_upload.id,
+                    upload_item=filename,
+                    description=descriptions[i]
+                )
+                db.session.add(new_detail)
+                db.session.commit()
+
+        flash('Images and details successfully uploaded')
+        return redirect('/success')
+    return render_template('upload.html', form=form)
