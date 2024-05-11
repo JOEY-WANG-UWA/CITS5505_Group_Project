@@ -118,6 +118,23 @@ def user(username):
     form = EmptyForm()
     return render_template('user.html', user=user, posts=posts.items,
                            next_url=next_url, prev_url=prev_url, form=form)
+@app.route('/user/<username>/collections')
+@login_required
+def show_collections(username):
+    user = db.first_or_404(sa.select(User).where(User.username == username))
+    page = request.args.get('page', 1, type=int)
+    per_page = current_app.config['MOMENTS_PHOTO_PER_PAGE']
+    pagination = db.paginate(
+        select(Photo)
+        .join(Collect, Collect.collected_id == Photo.id)
+        .filter_by(collector_id=user.id)
+        .order_by(Collect.created_at.desc()),
+        page=page,
+        per_page=per_page
+    )
+    collections = pagination.items
+    return render_template('user/collections.html', user=user, pagination=pagination, collections=collections)
+
 
 @app.before_request
 def before_request():
