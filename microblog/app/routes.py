@@ -334,20 +334,6 @@ def view_details():
     # Passing all data sets to the template
     return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
 
-@app.route('/view-details', methods=['GET'])
-def view_details():
-    # details = sa.select(Upload_detail).order_by(Upload_detail.id.desc())
-    details = Upload_detail.query.all()
-    uploads = sa.select(Upload).order_by(Upload.id.desc())
-    # uploads = Upload.query.all()
-    likes = sa.select(Favourite).order_by(Favourite.id.desc())
-    # likes = Favourite.query.all()
-    # Passing all data sets to the template
-    return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
-
-
-
-
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
