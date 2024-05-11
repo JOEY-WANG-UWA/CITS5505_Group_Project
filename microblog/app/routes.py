@@ -26,6 +26,10 @@ from app.models import Upload
 from app.models import Upload_detail
 from app.models import Favourite
 from flask_babel import _, get_locale
+from app.forms import UploadForm
+from werkzeug.utils import secure_filename
+import os
+from .models import Upload,Upload_detail
 
 @app.before_request
 def before_request():
@@ -345,7 +349,7 @@ def view_details():
 
 
 @app.route('/upload', methods=['GET', 'POST'])
-@login_required  # 确保用户已登录
+@login_required
 def upload():
     form = UploadForm()
     if form.validate_on_submit():
@@ -361,7 +365,7 @@ def upload():
                 file.save(file_path)
 
                 new_upload = Upload(
-                    user_id=current_user.id,  # 使用 Flask-Login 获取当前用户ID
+                    user_id=current_user.id,  
                     title=titles[i],
                     hashtag=hashtags[i],
                     upload_time=datetime.utcnow()
