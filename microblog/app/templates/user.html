@@ -13,7 +13,7 @@
                 <p>About Me: {{ user.about_me }}</p>
                 {% endif %}
                 <p>{{ user.followers_count() }} followers, {{ user.following_count() }} following.</p>
-            </div>
+
             {% if user == current_user %}
                     <p><a href="{{ url_for('edit_profile') }}">Edit your profile</a></p>
                         {% elif not current_user.is_following(user) %}
@@ -37,28 +37,12 @@
         <div class="row mt-4">
             <div class="col-12">
                 <ul class="nav nav-tabs justify-content-center">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#notes" data-toggle="tab">Notes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#likes" data-toggle="tab">Likes</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#collections" data-toggle="tab">Collections</a>
-                    </li>
+                    {{ render_nav_item('user.show_note', 'Photo', _badge=user.photos_count, username=user.username) }}
+                    {{ render_nav_item('user.check_collections', 'Collections', _badge=user.collections_count, username=user.username) }}
+                    {{ render_nav_item('user.show_likes', 'Likes', _badge=user.likes_count, username=user.username) }}
+                    {{ render_nav_item('user.show_following', 'Following', _badge=user.following_count, username=user.username) }}
+                    {{ render_nav_item('user.show_followers', 'Follower', _badge=user.followers_count, username=user.username) }}
                 </ul>
-            </div>
-        </div>
-
-        <div class="tab-content">
-            <div class="tab-pane active" id="notes">
-                <p class="empty-content">You haven't posted any content yet.</p>
-            </div>
-            <div class="tab-pane" id="likes">
-                <p class="empty-content">No likes available.</p>
-            </div>
-            <div class="tab-pane" id="collections">
-                <p class="empty-content">No collections available.</p>
             </div>
         </div>
     </div>

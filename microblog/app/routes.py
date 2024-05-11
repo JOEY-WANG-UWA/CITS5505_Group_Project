@@ -1,9 +1,10 @@
-from flask import render_template, flash, redirect, url_for, current_app
+from flask import render_template, flash, redirect, url_for
 from app import app
 from app.forms import LoginForm
 from flask_login import current_user, login_user
 import sqlalchemy as sa
 from app.models import User
+from sqlalchemy.orm import joinedload
 from flask_login import logout_user
 from flask import request, g
 from urllib.parse import urlsplit
@@ -14,7 +15,7 @@ from datetime import datetime, timezone
 from app.forms import EditProfileForm
 from app.forms import PostForm
 from app.forms import EmptyForm
-from app.models import Post
+from app.models import Post,Collection,Favourite,Follow
 from app.forms import ResetPasswordRequestForm
 from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
@@ -138,24 +139,103 @@ def user(username):
     form = EmptyForm()
     return render_template('user.html', user=user, posts=posts.items,
                            next_url=next_url, prev_url=prev_url, form=form)
-@app.route('/user/<username>/collections')
+
+
+@app.route('/user/<username>/check_collections')
 @login_required
-def show_collections(username):
+def check_collections(username):
     user = db.first_or_404(sa.select(User).where(User.username == username))
     page = request.args.get('page', 1, type=int)
-    per_page = current_app.config['MOMENTS_PHOTO_PER_PAGE']
-    pagination = db.paginate(
-        select(Photo)
-        .join(Collect, Collect.collected_id == Photo.id)
-        .filter_by(collector_id=user.id)
-        .order_by(Collect.created_at.desc()),
-        page=page,
-        per_page=per_page
+    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
+    query = (
+        sa.select(Upload, Upload_detail, Collection)
+        .join(Collection, Collection.user_id == user.id)  # Linking collections to user
+        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
+        .join(Collection, Collection.upload_id == Upload.id)  # Linking collections to uploads
+        .filter(Collection.user_id == user.id)  # Filtering collections by the user
+        .order_by(Collection.collect_time.desc())  # Ordering by the collection time
     )
-    collections = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, collections=collections)
+    # Pagination setup
+    pagination = db.paginate(
+        query,
+        page=page,
+        per_page=app.config['POSTS_PER_PAGE'] # Assume 'per_page' is set to 10, adjust as necessary
+    )
+
+    results = pagination.items
+    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
 
 
+@app.route('/user/<username>/likes')
+@login_required
+def show_likes(username):
+    user = db.first_or_404(sa.select(User).where(User.username == username))
+    page = request.args.get('page', 1, type=int)
+    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
+    query = (
+        sa.select(Upload, Upload_detail, Favourite)
+        .join(Favourite, Favourite.user_id == user.id)  # Linking collections to user
+        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
+        .join(Favourite, Favourite.upload_id == Upload.id)  # Linking collections to uploads
+        .filter(Favourite.user_id == user.id)  # Filtering collections by the user
+        .order_by(Favourite.favourite_time.desc())  # Ordering by the collection time
+    )
+    # Pagination setup
+    pagination = db.paginate(
+        query,
+        page=page,
+        per_page=app.config['POSTS_PER_PAGE']  # Assume 'per_page' is set to 10, adjust as necessary
+    )
+    results = pagination.items
+    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
+
+@app.route('/user/<username>/following')
+@login_required
+def show_following(username):
+    user = db.first_or_404(sa.select(User).filter_by(username=username))
+    page = request.args.get('page', 1, type=int)
+    pagination = db.paginate(
+        sa.select(User)
+        .join(Follow, Follow.followed_id == User.id)
+        .filter_by(
+            follower_id=user.id),
+            page=page,
+            per_page=app.config['POSTS_PER_PAGE']
+    )
+    following = pagination.items
+    return render_template('user/following.html', user=user, pagination=pagination, following=following)
+
+@app.route('/user/<username>/following')
+@login_required
+def show_notes(username):
+    user = db.first_or_404(sa.select(User).filter_by(username=username))
+    page = request.args.get('page', 1, type=int)
+    pagination = db.paginate(
+        sa.select(User)
+        .join(Upload, Upload.user.id == user.id)  # Linking uploads to their details
+        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking collections to uploads
+        .filter_by(
+            user_id=User.id),
+            page=page,
+            per_page=app.config['POSTS_PER_PAGE']
+    )
+    following = pagination.items
+    return render_template('user/collections.html', user=user, pagination=pagination, following=following)
+@app.route('/user/<username>/followers')
+@login_required
+def show_following(username):
+    user = db.first_or_404(sa.select(User).filter_by(username=username))
+    page = request.args.get('page', 1, type=int)
+    pagination = db.paginate(
+        sa.select(User)
+        .join(Follow, Follow.follower_id == User.id)
+        .filter_by(
+            followed_id=user.id),
+            page=page,
+            per_page=app.config['POSTS_PER_PAGE']
+    )
+    following = pagination.items
+    return render_template('user/followers.html', user=user, pagination=pagination, following=following)
 
 @app.before_request
 def before_request():
@@ -200,6 +280,7 @@ def follow(username):
         return redirect(url_for('user', username=username))
     else:
         return redirect(url_for('index'))
+
 
 
 @app.route('/unfollow/<username>', methods=['POST'])
