@@ -335,7 +335,6 @@ def view_details():
     return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
 
 @app.route('/upload', methods=['GET', 'POST'])
-@login_required
 def upload():
     form = UploadForm()
     if form.validate_on_submit():
@@ -351,21 +350,22 @@ def upload():
                 file.save(file_path)
 
                 new_upload = Upload(
-                    user_id=current_user.id,  
+                    user_id=1,  
                     title=titles[i],
                     hashtag=hashtags[i],
                     upload_time=datetime.utcnow()
                 )
                 db.session.add(new_upload)
-        
-        try:
-            db.session.commit()
-            flash('Images successfully uploaded')
-        except Exception as e:
-            db.session.rollback()
-            flash(f"An error occurred: {str(e)}")
-            return redirect(url_for('upload'))
-        
-        return redirect(url_for('index'))
-    
+                db.session.commit()
+
+                new_detail = Upload_detail(
+                    upload_id=new_upload.id,
+                    upload_item=filename,
+                    description=descriptions[i]
+                )
+                db.session.add(new_detail)
+                db.session.commit()
+
+        flash('Images and details successfully uploaded')
+        return redirect('/success')
     return render_template('upload.html', form=form)
