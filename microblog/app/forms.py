@@ -11,6 +11,8 @@ from wtforms import TextAreaField
 from wtforms.validators import Length
 from flask_babel import _, lazy_gettext as _l
 from flask import request
+from flask_wtf.file import FileField, FileRequired, FileAllowed
+from wtforms import SubmitField
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -77,3 +79,13 @@ class MessageForm(FlaskForm):
     message = TextAreaField(_l('Message'), validators=[
         DataRequired(), Length(min=0, max=140)])
     submit = SubmitField(_l('Submit'))
+
+class UploadForm(FlaskForm): #####
+    photo = FileField('Upload Image', validators=[
+        FileRequired(),
+        FileAllowed(['webp','jpg', 'jpeg', 'png', 'gif'], 'Images only!')
+    ], render_kw={"multiple": True})
+    title = StringField('Title', validators=[DataRequired()])
+    hashtag = StringField('Hashtag')
+    description = TextAreaField('Description')
+    submit = SubmitField('Upload')
