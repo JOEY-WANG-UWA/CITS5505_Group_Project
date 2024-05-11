@@ -1,4 +1,4 @@
-from flask import render_template, flash, redirect, url_for
+from flask import render_template, flash, redirect, url_for, current_app
 from app import app
 from app.forms import LoginForm
 from flask_login import current_user, login_user
@@ -23,6 +23,11 @@ from app.forms import MessageForm
 from app.models import Message
 from app.models import Notification
 from flask_babel import _, get_locale
+from app.forms import UploadForm
+from werkzeug.utils import secure_filename
+import os
+from .models import Upload,Upload_detail
+
 
 @app.before_request
 def before_request():
@@ -275,3 +280,53 @@ def notifications():
         'data': n.get_data(),
         'timestamp': n.timestamp
     } for n in notifications]
+
+@app.route('/view-details', methods=['GET'])
+def view_details():
+    # details = sa.select(Upload_detail).order_by(Upload_detail.id.desc())
+    details = Upload_detail.query.all()
+    uploads = sa.select(Upload).order_by(Upload.id.desc())
+    # uploads = Upload.query.all()
+    likes = sa.select(Favourite).order_by(Favourite.id.desc())
+    # likes = Favourite.query.all()
+    # Passing all data sets to the template
+    return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
+
+
+
+
+@app.route('/upload', methods=['GET', 'POST'])
+@login_required  # 确保用户已登录
+def upload():
+    form = UploadForm()
+    if form.validate_on_submit():
+        files = request.files.getlist('photos')
+        titles = request.form.getlist('titles')
+        descriptions = request.form.getlist('descriptions')
+        hashtags = request.form.getlist('hashtags')
+        
+        for i, file in enumerate(files):
+            if file:
+                filename = secure_filename(file.filename)
+                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                file.save(file_path)
+
+                new_upload = Upload(
+                    user_id=current_user.id,  # 使用 Flask-Login 获取当前用户ID
+                    title=titles[i],
+                    hashtag=hashtags[i],
+                    upload_time=datetime.utcnow()
+                )
+                db.session.add(new_upload)
+        
+        try:
+            db.session.commit()
+            flash('Images successfully uploaded')
+        except Exception as e:
+            db.session.rollback()
+            flash(f"An error occurred: {str(e)}")
+            return redirect(url_for('upload'))
+        
+        return redirect(url_for('index'))
+    
+    return render_template('upload.html', form=form)
