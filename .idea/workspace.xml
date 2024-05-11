@@ -4,14 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0da32499-c908-420c-9fde-6076c52d47a9" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/24b5a429-2719-4cdb-ad1c-7de9746886ca.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/24b5a429-2719-4cdb-ad1c-7de9746886ca.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app.db" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/templates/user.html" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/templates/user.html" afterDir="false" />
-    </list>
+    <list default="true" id="0da32499-c908-420c-9fde-6076c52d47a9" name="Changes" comment="user avatar and collection changed, now we can get default image and update photos" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -31,6 +24,12 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
+  <component name="GithubPullRequestsUISettings"><![CDATA[{
+  "selectedUrlAndAccountId": {
+    "url": "https://github.com/JOEY-WANG-UWA/CITS5505_Group_Project.git",
+    "accountId": "3c1a4a10-b838-4317-8ccc-2d9766f2f99f"
+  }
+}]]></component>
   <component name="ProjectColorInfo">{
   &quot;customColor&quot;: &quot;&quot;,
   &quot;associatedIndex&quot;: 5
@@ -78,12 +77,25 @@
       <workItem from="1715253180995" duration="81000" />
       <workItem from="1715253391576" duration="2702000" />
       <workItem from="1715344272548" duration="2267000" />
-      <workItem from="1715409158907" duration="2253000" />
+      <workItem from="1715409158907" duration="2636000" />
     </task>
+    <task id="LOCAL-00001" summary="user avatar and collection changed, now we can get default image and update photos">
+      <option name="closed" value="true" />
+      <created>1715411771789</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1715411771789</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="user avatar and collection changed, now we can get default image and update photos" />
+    <option name="LAST_COMMIT_MESSAGE" value="user avatar and collection changed, now we can get default image and update photos" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
