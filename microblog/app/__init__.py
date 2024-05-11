@@ -7,6 +7,7 @@ from flask_mail import Mail
 from flask_moment import Moment
 from elasticsearch import Elasticsearch
 from flask_babel import Babel, lazy_gettext as _l
+from flask_dropzone import Dropzone
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -20,6 +21,7 @@ moment = Moment(app)
 babel = Babel(app)
 app.elasticsearch = Elasticsearch([app.config['ELASTICSEARCH_URL']]) \
         if app.config['ELASTICSEARCH_URL'] else None
+dropzone = Dropzone(app)
 
 
 from app import routes, models
