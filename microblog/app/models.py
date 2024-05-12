@@ -58,8 +58,8 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def avatar(self, size=128):
-        if self.avatar_url:
-            return self.avatar_url
+        if self.avatar:
+            return self.avatar
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return f'https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}'
 
@@ -233,14 +233,6 @@ class Notification(db.Model):
 
     def get_data(self):
         return json.loads(str(self.payload_json))
-
-class Follow(db.Model):
-    follower_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('user.id'), primary_key=True)
-    followed_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey('user.id'), primary_key=True)
-    created_at: so.Mapped[datetime] = so.mapped_column(default=datetime.now(timezone.utc))
-
-    follower: so.Mapped['User'] = so.relationship(foreign_keys=[follower_id], back_populates='following', lazy='joined')
-    followed: so.Mapped['User'] = so.relationship(foreign_keys=[followed_id], back_populates='followers', lazy='joined')
 
 class Upload(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)

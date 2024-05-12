@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from app.forms import EditProfileForm
 from app.forms import PostForm
 from app.forms import EmptyForm
-from app.models import Post,Collection,Favourite,Follow
+from app.models import Post, Collection, Favourite, followers
 from app.forms import ResetPasswordRequestForm
 from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
@@ -146,9 +146,8 @@ def check_collections(username):
     # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
     query = (
         sa.select(Upload, Upload_detail, Collection)
-        .join(Collection, Collection.user_id == user.id)  # Linking collections to user
+        .join(Collection, Collection.user_id == Upload.user_id)  # Linking collections to user
         .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .join(Collection, Collection.upload_id == Upload.id)  # Linking collections to uploads
         .filter(Collection.user_id == user.id)  # Filtering collections by the user
         .order_by(Collection.collect_time.desc())  # Ordering by the collection time
     )
@@ -193,7 +192,7 @@ def show_following(username):
     page = request.args.get('page', 1, type=int)
     pagination = db.paginate(
         sa.select(User)
-        .join(Follow, Follow.followed_id == User.id)
+        .join(followers, followers.followed_id == User.id)
         .filter_by(
             follower_id=user.id),
             page=page,
@@ -202,37 +201,37 @@ def show_following(username):
     following = pagination.items
     return render_template('user/following.html', user=user, pagination=pagination, following=following)
 
-@app.route('/user/<username>/following')
+@app.route('/user/<username>/show_notes')
 @login_required
-def show_notes(username):
+def show_note(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
     pagination = db.paginate(
         sa.select(User)
-        .join(Upload, Upload.user.id == user.id)  # Linking uploads to their details
+        .join(Upload, Upload.user_id == user.id)  # Linking uploads to their details
         .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking collections to uploads
         .filter_by(
-            user_id=User.id),
+            user_id=user.id),
             page=page,
             per_page=app.config['POSTS_PER_PAGE']
     )
-    following = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, following=following)
+    notes = pagination.items
+    return render_template('user/collections.html', user=user, pagination=pagination, notes=notes)
 @app.route('/user/<username>/followers')
 @login_required
-def show_following(username):
+def show_follower(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
     pagination = db.paginate(
         sa.select(User)
-        .join(Follow, Follow.follower_id == User.id)
+        .join(followers, followers.follower_id == User.id)
         .filter_by(
             followed_id=user.id),
             page=page,
             per_page=app.config['POSTS_PER_PAGE']
     )
-    following = pagination.items
-    return render_template('user/followers.html', user=user, pagination=pagination, following=following)
+    follower = pagination.items
+    return render_template('user/followers.html', user=user, pagination=pagination, follower=follower)
 
 @app.before_request
 def before_request():

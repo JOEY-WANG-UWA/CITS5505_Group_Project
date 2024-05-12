@@ -4,17 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0da32499-c908-420c-9fde-6076c52d47a9" name="Changes" comment="user avatar and collection changed, now we can get default image and update photos">
-      <change afterPath="$PROJECT_DIR$/microblog/app/templates/User/collections.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/microblog/app/templates/User/following.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/microblog/app/templates/_mainphoto.html" afterDir="false" />
+    <list default="true" id="0da32499-c908-420c-9fde-6076c52d47a9" name="Changes" comment="This is the unfinished version of User page which has note, collection , likes, following, follower">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/static/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/static/css/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/templates/user.html" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/templates/user.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,21 +25,22 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {}
-}]]></component>
-  <component name="GitHubPullRequestState"><![CDATA[{
-  "prStates": [
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {}
+}</component>
+  <component name="GitHubPullRequestState">{
+  &quot;prStates&quot;: [
     {
-      "id": {
-        "id": "PR_kwDOLx7ZBM5uV8bS",
-        "number": 1
+      &quot;id&quot;: {
+        &quot;id&quot;: &quot;PR_kwDOLx7ZBM5uV8bS&quot;,
+        &quot;number&quot;: 1
       },
-      "lastSeen": 1715411937384
+      &quot;lastSeen&quot;: 1715411937384
     }
   ]
-}]]></component>
+}</component>
   <component name="GithubPullRequestsUISettings">{
   &quot;selectedUrlAndAccountId&quot;: {
     &quot;url&quot;: &quot;https://github.com/JOEY-WANG-UWA/CITS5505_Group_Project.git&quot;,
@@ -64,22 +56,22 @@
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent">{
-  &quot;keyToString&quot;: {
-    &quot;Python.config.executor&quot;: &quot;Debug&quot;,
-    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;test&quot;,
-    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/yuxiao/Desktop/moments-main&quot;,
-    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
-    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
-    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
-    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
-    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable&quot;,
-    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Python.config.executor": "Debug",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "git-widget-placeholder": "test",
+    "ignore.virus.scanning.warn.message": "true",
+    "last_opened_file_path": "C:/Users/yuxiao/Desktop/24S1/5505web_dev/CITS5505_Group_Project",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "settings.editor.selected.configurable": "com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable",
+    "vue.rearranger.settings.migration": "true"
   }
-}</component>
+}]]></component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
       <recent name="C:\Users\yuxiao\Desktop\24S1\5505web_dev\group_project\CITS5505_Group_Project\microblog\app\templates\User" />
@@ -107,7 +99,8 @@
       <workItem from="1715253180995" duration="81000" />
       <workItem from="1715253391576" duration="2702000" />
       <workItem from="1715344272548" duration="2267000" />
-      <workItem from="1715409158907" duration="11966000" />
+      <workItem from="1715409158907" duration="12724000" />
+      <workItem from="1715502917760" duration="15000" />
     </task>
     <task id="LOCAL-00001" summary="user avatar and collection changed, now we can get default image and update photos">
       <option name="closed" value="true" />
@@ -125,15 +118,35 @@
       <option name="project" value="LOCAL" />
       <updated>1715411903706</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="This is the unfinished version of User page which has note, collection , likes, following, follower">
+      <option name="closed" value="true" />
+      <created>1715423063122</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1715423063122</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="user avatar and collection changed, now we can get default image and update photos" />
-    <option name="LAST_COMMIT_MESSAGE" value="user avatar and collection changed, now we can get default image and update photos" />
+    <MESSAGE value="This is the unfinished version of User page which has note, collection , likes, following, follower" />
+    <option name="LAST_COMMIT_MESSAGE" value="This is the unfinished version of User page which has note, collection , likes, following, follower" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
