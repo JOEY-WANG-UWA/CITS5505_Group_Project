@@ -15,7 +15,7 @@ from datetime import datetime, timezone
 from app.forms import EditProfileForm
 from app.forms import PostForm
 from app.forms import EmptyForm
-from app.models import Post, Collection, Favourite, Follow
+from app.models import Post, Collection, Favourite, Followers
 from app.forms import ResetPasswordRequestForm
 from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
@@ -222,7 +222,7 @@ def show_following(username):
     page = request.args.get('page', 1, type=int)
     pagination = db.paginate(
         sa.select(User)
-        .join(Follow, Follow.followed_id == User.id)
+        .join(Followers, Followers.followed_id == User.id)
         .filter_by(
             follower_id=user.id),
         page=page,
@@ -240,11 +240,10 @@ def show_notes(username):
     pagination = db.paginate(
         sa.select(User)
         # Linking uploads to their details
-        .join(Upload, Upload.user.id == user.id)
+        .join(Followers, Followers.followed_id == User.id)
         # Linking collections to uploads
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)
         .filter_by(
-            user_id=User.id),
+            follower_id=user.id),
         page=page,
         per_page=app.config['POSTS_PER_PAGE']
     )
@@ -254,12 +253,14 @@ def show_notes(username):
 
 @app.route('/user/<username>/followers')
 @login_required
-def show_following(username):
+def show_follower(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
     pagination = db.paginate(
         sa.select(User)
-        .join(Follow, Follow.follower_id == User.id)
+        # Linking uploads to their details
+        .join(Followers, Followers.follower_id == User.id)
+        # Linking collections to uploads
         .filter_by(
             followed_id=user.id),
         page=page,

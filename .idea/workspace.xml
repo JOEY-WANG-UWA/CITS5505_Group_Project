@@ -4,17 +4,8 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0da32499-c908-420c-9fde-6076c52d47a9" name="Changes" comment="user avatar and collection changed, now we can get default image and update photos">
-      <change afterPath="$PROJECT_DIR$/microblog/app/templates/User/collections.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/microblog/app/templates/User/following.html" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/microblog/app/templates/_mainphoto.html" afterDir="false" />
+    <list default="true" id="0da32499-c908-420c-9fde-6076c52d47a9" name="Changes" comment="This is the unfinished version of User page which has note, collection , likes, following, follower">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/static/css/style.css" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/static/css/style.css" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/templates/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/templates/index.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/templates/user.html" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/templates/user.html" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -34,6 +25,7 @@
   </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="UPDATE_TYPE" value="REBASE" />
   </component>
   <component name="GitHubPullRequestSearchHistory"><![CDATA[{
   "lastFilter": {}
@@ -107,7 +99,7 @@
       <workItem from="1715253180995" duration="81000" />
       <workItem from="1715253391576" duration="2702000" />
       <workItem from="1715344272548" duration="2267000" />
-      <workItem from="1715409158907" duration="11966000" />
+      <workItem from="1715409158907" duration="12807000" />
     </task>
     <task id="LOCAL-00001" summary="user avatar and collection changed, now we can get default image and update photos">
       <option name="closed" value="true" />
@@ -125,7 +117,15 @@
       <option name="project" value="LOCAL" />
       <updated>1715411903706</updated>
     </task>
-    <option name="localTasksCounter" value="3" />
+    <task id="LOCAL-00003" summary="This is the unfinished version of User page which has note, collection , likes, following, follower">
+      <option name="closed" value="true" />
+      <created>1715423063122</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1715423063122</updated>
+    </task>
+    <option name="localTasksCounter" value="4" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -133,7 +133,8 @@
   </component>
   <component name="VcsManagerConfiguration">
     <MESSAGE value="user avatar and collection changed, now we can get default image and update photos" />
-    <option name="LAST_COMMIT_MESSAGE" value="user avatar and collection changed, now we can get default image and update photos" />
+    <MESSAGE value="This is the unfinished version of User page which has note, collection , likes, following, follower" />
+    <option name="LAST_COMMIT_MESSAGE" value="This is the unfinished version of User page which has note, collection , likes, following, follower" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
