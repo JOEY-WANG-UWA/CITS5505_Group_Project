@@ -241,18 +241,11 @@ class Notification(db.Model):
         return json.loads(str(self.payload_json))
 
 
-class Follow(db.Model):
-    follower_id: so.Mapped[int] = so.mapped_column(
-        sa.ForeignKey('user.id'), primary_key=True)
-    followed_id: so.Mapped[int] = so.mapped_column(
-        sa.ForeignKey('user.id'), primary_key=True)
-    created_at: so.Mapped[datetime] = so.mapped_column(
-        default=datetime.now(timezone.utc))
-
-    follower: so.Mapped['User'] = so.relationship(
-        foreign_keys=[follower_id], back_populates='following', lazy='joined')
-    followed: so.Mapped['User'] = so.relationship(
-        foreign_keys=[followed_id], back_populates='followers', lazy='joined')
+# class Follow(db.Model):
+#    follower_id: so.Mapped[int] = so.mapped_column(
+#        sa.ForeignKey('user.id'), primary_key=True)
+#    followed_id: so.Mapped[int] = so.mapped_column(
+#        sa.ForeignKey('user.id'), primary_key=True)
 
 
 class Upload(db.Model):
@@ -262,7 +255,7 @@ class Upload(db.Model):
     title: so.Mapped[str] = so.mapped_column(sa.String(140))
     upload_time: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
-    hashtag: so.Mapped[str] = so.mapped_column(sa.String(140)),
+    hashtag: so.Mapped[str] = so.mapped_column(sa.String(140))
     description: so.Mapped[str] = so.mapped_column(sa.String(300))
     updetails = db.relationship(
         'Upload_detail', backref='uploads', lazy='dynamic')
@@ -299,10 +292,10 @@ class Collection(db.Model):
 
 class Comment(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    post_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Post.id),
-                                               index=True)
+    upload_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Upload.id),
+                                                 index=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
                                                index=True)
     comment_time: so.Mapped[datetime] = so.mapped_column(
-        index=True, default=lambda: datetime.now(timezone.utc)),
+        index=True, default=lambda: datetime.now(timezone.utc))
     comment_content: so.Mapped[str] = so.mapped_column(sa.String(300))

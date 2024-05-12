@@ -1,3 +1,4 @@
+from flask import Flask, render_template
 from flask import render_template, flash, redirect, url_for
 from app import app
 from app.forms import LoginForm
@@ -15,7 +16,7 @@ from datetime import datetime, timezone
 from app.forms import EditProfileForm
 from app.forms import PostForm
 from app.forms import EmptyForm
-from app.models import Post, Collection, Favourite, Follow
+from app.models import Post, Collection, Favourite
 from app.forms import ResetPasswordRequestForm
 from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
@@ -32,7 +33,10 @@ from werkzeug.utils import secure_filename
 import os
 from .models import Upload, Upload_detail, Collection, Comment
 from collections import defaultdict
-from sqlalchemy import select, func
+from sqlalchemy import select, func, distinct
+from .forms import DescriptionForm
+from .forms import CommentForm
+from flask import jsonify
 
 
 @app.before_request
@@ -43,20 +47,94 @@ def before_request():
         g.search_form = SearchForm()
 
 
-@app.route('/')
-@app.route('/gallery')
+@ app.route('/')
+@ app.route('/gallery')
 def gallery():
     uploads = Upload.query.all()
-    grouped_details = defaultdict(list)
-    for upload in uploads:
-        for detail in upload.updetails:
-            grouped_details[upload.id].append(detail.upload_item)
+    grouped_details = defaultdict(dict)
+
     uploads_with_collection = db.session.query(
-        Upload,
-        func.count(Collection.id).label('collect_count')
-    ).outerjoin(Collection, Collection.upload_id == Upload.id).group_by(Upload.id).all()
-    print(uploads_with_collection)
+        Upload.id,
+        Upload.title,
+        User.username,
+        Upload.description,
+        Comment.comment_content,
+        func.count(distinct(Collection.id)).label('collect_count'),
+        func.count(distinct(Comment.id)).label('comment_count')
+    ).select_from(Upload).join(User).outerjoin(Collection, Collection.upload_id == Upload.id).outerjoin(Comment, Comment.upload_id == Upload.id).group_by(Upload.id, Upload.title, User.username).all()
+
+    # for upload in uploads_with_collection:
+    # print(upload)
+
+    for upload_id, title, username, description, comment, collect_count, comment_count in uploads_with_collection:
+        grouped_details[upload_id] = {
+            'title': title,
+            'username': username,
+            'description': description,
+            'comment': comment,
+            'collect_count': collect_count,
+            'comment_count': comment_count,
+            'items': []
+        }
+    for upload in Upload.query.all():
+        for detail in upload.updetails:
+            grouped_details[upload.id]['items'].append(detail.upload_item)
+    print(grouped_details)
     return render_template('main/gallery.html', grouped_details=grouped_details, uploads=uploads, uploads_with_collection=uploads_with_collection)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+@app.route('/add_to_collection/<int:upload_id>', methods=['POST'])
+def add_to_collection(upload_id):
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Authentication required'}), 401
+
+    collection = Collection.query.filter_by(
+        upload_id=upload_id, user_id=current_user.id).first()
+    if collection:
+        db.session.delete(collection)
+        db.session.commit()
+        new_count = Collection.query.filter_by(upload_id=upload_id).count()
+        return jsonify({'success': True, 'newCount': new_count})
+    else:
+        new_collection = Collection(
+            upload_id=upload_id, user_id=current_user.id)
+        db.session.add(new_collection)
+        db.session.commit()
+        new_count = Collection.query.filter_by(upload_id=upload_id).count()
+        return jsonify({'success': True, 'newCount': new_count})
+
+# @app.route('/add_to_collection/<int:upload_id>', methods=['POST'])
+# def add_to_collection(upload_id):
+    new_collection = Collection(upload_id=upload_id, user_id=current_user.id)
+    db.session.add(new_collection)
+    db.session.commit()
+    return jsonify({'message': 'Successfully added to collection'})
+
+
+@app.route('/post_comment/<int:upload_id>', methods=['POST'])
+def post_comment(upload_id):
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'User not authenticated'}), 401
+
+    data = request.get_json()
+    comment_content = data.get('comment')
+
+    if not comment_content:
+        return jsonify({'success': False, 'message': 'Comment content is required'}), 400
+
+    new_comment = Comment(
+        upload_id=upload_id,
+        user_id=current_user.id,
+        comment_content=comment_content
+    )
+    db.session.add(new_comment)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Comment posted', 'username': current_user.username})
 
 
 @app.route('/index', methods=['GET', 'POST'])
@@ -254,7 +332,7 @@ def show_notes(username):
 
 @app.route('/user/<username>/followers')
 @login_required
-def show_following(username):
+def show_follower(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
     pagination = db.paginate(

@@ -13,6 +13,8 @@ from flask_babel import _, lazy_gettext as _l
 from flask import request
 from flask_wtf.file import FileField, FileRequired, FileAllowed
 from wtforms import SubmitField
+from wtforms.validators import Length, Optional
+
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
@@ -42,28 +44,34 @@ class RegistrationForm(FlaskForm):
         if user is not None:
             raise ValidationError('Please use a different email address.')
 
+
 class EditProfileForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired()])
     about_me = TextAreaField('About me', validators=[Length(min=0, max=140)])
     submit = SubmitField('Submit')
 
+
 class EmptyForm(FlaskForm):
     submit = SubmitField('Submit')
+
 
 class PostForm(FlaskForm):
     post = TextAreaField('Say something', validators=[
         DataRequired(), Length(min=1, max=140)])
     submit = SubmitField('Submit')
 
+
 class ResetPasswordRequestForm(FlaskForm):
     email = StringField('Email', validators=[DataRequired(), Email()])
     submit = SubmitField('Request Password Reset')
+
 
 class ResetPasswordForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
     password2 = PasswordField(
         'Repeat Password', validators=[DataRequired(), EqualTo('password')])
     submit = SubmitField('Request Password Reset')
+
 
 class SearchForm(FlaskForm):
     q = StringField(_l('Search'), validators=[DataRequired()])
@@ -75,17 +83,30 @@ class SearchForm(FlaskForm):
             kwargs['meta'] = {'csrf': False}
         super(SearchForm, self).__init__(*args, **kwargs)
 
+
 class MessageForm(FlaskForm):
     message = TextAreaField(_l('Message'), validators=[
         DataRequired(), Length(min=0, max=140)])
     submit = SubmitField(_l('Submit'))
 
-class UploadForm(FlaskForm): #####
+
+class UploadForm(FlaskForm):
     photo = FileField('Upload Image', validators=[
         FileRequired(),
-        FileAllowed(['webp','jpg', 'jpeg', 'png', 'gif'], 'Images only!')
+        FileAllowed(['webp', 'jpg', 'jpeg', 'png', 'gif'], 'Images only!')
     ], render_kw={"multiple": True})
     title = StringField('Title', validators=[DataRequired()])
     hashtag = StringField('Hashtag')
     description = TextAreaField('Description')
     submit = SubmitField('Upload')
+
+
+class DescriptionForm(FlaskForm):
+    description = TextAreaField('Description', validators=[
+                                Optional(), Length(max=500)])
+    submit = SubmitField('Save Description')
+
+
+class CommentForm(FlaskForm):
+    body = TextAreaField('', validators=[DataRequired()])
+    submit = SubmitField()
