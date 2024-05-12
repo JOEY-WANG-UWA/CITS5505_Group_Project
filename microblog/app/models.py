@@ -146,6 +146,7 @@ class User(UserMixin, db.Model):
             return
         return db.session.get(User, id)
 
+    uploads: so.WriteOnlyMapped['Upload'] = so.relationship('Upload', back_populates='user') ##
 
 class SearchableMixin(object):
     @classmethod
@@ -261,7 +262,12 @@ class Upload(db.Model):
         'Upload_detail', backref='uploads', lazy='dynamic')
     collections = db.relationship(
         'Collection', backref='uploads', lazy='dynamic')
-
+    
+    user: so.Mapped['User'] = so.relationship('User', back_populates='uploads') ##
+    details: so.Mapped['Upload_detail'] = so.relationship('Upload_detail', back_populates='upload') ##
+    
+    def __repr__(self):##
+        return '<Upload title: "{}">'.format(self.title)##
 
 class Upload_detail(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
@@ -269,6 +275,10 @@ class Upload_detail(db.Model):
                                                  index=True)
     upload_item: so.Mapped[str] = so.mapped_column(sa.String(140))
 
+    upload: so.Mapped['Upload'] = so.relationship('Upload', back_populates='details') ##
+    
+    def __repr__(self):##
+        return '<Upload item: "{}">'.format(self.upload_item) ##
 
 class Favourite(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)

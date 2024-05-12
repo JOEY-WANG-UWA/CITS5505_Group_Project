@@ -31,7 +31,7 @@ from flask_babel import _, get_locale
 from app.forms import UploadForm
 from werkzeug.utils import secure_filename
 import os
-from .models import Upload, Upload_detail, Collection, Comment
+from app.models import Upload, Upload_detail, Collection, Comment
 from collections import defaultdict
 from sqlalchemy import select, func, distinct
 from .forms import DescriptionForm
@@ -524,39 +524,40 @@ def view_details():
     # Passing all data sets to the template
     return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
 
-
 @app.route('/upload', methods=['GET', 'POST'])
+@login_required
 def upload():
     form = UploadForm()
     if form.validate_on_submit():
-        files = request.files.getlist('photos')
-        titles = request.form.getlist('titles')
-        descriptions = request.form.getlist('descriptions')
-        hashtags = request.form.getlist('hashtags')
+        try:
+            new_upload = Upload(
+                user_id=current_user.id,
+                title=form.title.data,
+                hashtag=form.hashtag.data,
+                description=form.description.data,
+                upload_time=datetime.now(timezone.utc)
+            )
+            db.session.add(new_upload)
+            db.session.flush()
 
-        for i, file in enumerate(files):
-            if file:
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(file_path)
+            files = request.files.getlist('file')
+            for file in files:
+                if file: 
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
 
-                new_upload = Upload(
-                    user_id=1,
-                    title=titles[i],
-                    hashtag=hashtags[i],
-                    upload_time=datetime.utcnow()
-                )
-                db.session.add(new_upload)
-                db.session.commit()
+                    new_detail = Upload_detail(
+                        upload_id=new_upload.id,
+                        upload_item=filename,
+                    )
+                    db.session.add(new_detail)
 
-                new_detail = Upload_detail(
-                    upload_id=new_upload.id,
-                    upload_item=filename,
-                    description=descriptions[i]
-                )
-                db.session.add(new_detail)
-                db.session.commit()
-
-        flash('Images and details successfully uploaded')
-        return redirect('/success')
+            db.session.commit()
+            flash('All files successfully uploaded as part of the same post!')
+            return redirect(url_for('index'))
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred: ' + str(e), 'error')
+            return redirect(url_for('upload'))
     return render_template('upload.html', form=form)
