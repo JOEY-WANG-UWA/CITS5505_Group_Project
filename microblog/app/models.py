@@ -15,6 +15,11 @@ from app.search import add_to_index, remove_from_index, query_index
 import json
 from time import time
 
+@login.user_loader
+def load_user(id):
+    return db.session.get(User, int(id))
+
+
 followers = sa.Table(
     'followers',
     db.metadata,
@@ -23,11 +28,6 @@ followers = sa.Table(
     sa.Column('followed_id', sa.Integer, sa.ForeignKey('user.id'),
               primary_key=True)
 )
-
-@login.user_loader
-def load_user(id):
-    return db.session.get(User, int(id))
-
 class User(UserMixin, db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     username: so.Mapped[str] = so.mapped_column(sa.String(64), index=True,

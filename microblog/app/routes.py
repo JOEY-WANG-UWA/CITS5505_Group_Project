@@ -4,7 +4,7 @@ from app.forms import LoginForm
 from flask_login import current_user, login_user
 import sqlalchemy as sa
 from app.models import User
-from sqlalchemy.orm import joinedload
+from sqlalchemy.orm import joinedload,aliased
 from flask_login import logout_user
 from flask import request, g
 from urllib.parse import urlsplit
@@ -170,9 +170,8 @@ def show_likes(username):
     # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
     query = (
         sa.select(Upload, Upload_detail, Favourite)
-        .join(Favourite, Favourite.user_id == user.id)  # Linking collections to user
+        .join(Favourite, Favourite.user_id == Upload.user_id)  # Linking collections to user
         .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .join(Favourite, Favourite.upload_id == Upload.id)  # Linking collections to uploads
         .filter(Favourite.user_id == user.id)  # Filtering collections by the user
         .order_by(Favourite.favourite_time.desc())  # Ordering by the collection time
     )
@@ -190,48 +189,52 @@ def show_likes(username):
 def show_following(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
-    pagination = db.paginate(
-        sa.select(User)
-        .join(followers, followers.followed_id == User.id)
-        .filter_by(
-            follower_id=user.id),
-            page=page,
-            per_page=app.config['POSTS_PER_PAGE']
-    )
+    # We use an aliased User to distinguish between the follower and followed in the join
+    followed_alias = aliased(User)
+
+    pagination = db.session.query(followed_alias). \
+        join(followers, followers.c.followed_id == followed_alias.id). \
+        filter(followers.c.follower_id == user.id). \
+        paginate(page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+
     following = pagination.items
     return render_template('user/following.html', user=user, pagination=pagination, following=following)
 
 @app.route('/user/<username>/show_notes')
 @login_required
 def show_note(username):
-    user = db.first_or_404(sa.select(User).filter_by(username=username))
+    user = db.first_or_404(sa.select(User).where(User.username == username))
     page = request.args.get('page', 1, type=int)
-    pagination = db.paginate(
-        sa.select(User)
-        .join(Upload, Upload.user_id == user.id)  # Linking uploads to their details
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking collections to uploads
-        .filter_by(
-            user_id=user.id),
-            page=page,
-            per_page=app.config['POSTS_PER_PAGE']
+    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
+    query = (
+        sa.select(Upload, Upload_detail)
+        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
+        .filter(Upload.user_id == user.id)  # Filtering collections by the user
+        .order_by(Upload.upload_time.desc())  # Ordering by the collection time
     )
-    notes = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, notes=notes)
+    # Pagination setup
+    pagination = db.paginate(
+        query,
+        page=page,
+        per_page=app.config['POSTS_PER_PAGE']  # Assume 'per_page' is set to 10, adjust as necessary
+    )
+    results = pagination.items
+    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
+
 @app.route('/user/<username>/followers')
 @login_required
 def show_follower(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
-    pagination = db.paginate(
-        sa.select(User)
-        .join(followers, followers.follower_id == User.id)
-        .filter_by(
-            followed_id=user.id),
-            page=page,
-            per_page=app.config['POSTS_PER_PAGE']
-    )
+    following_alias = aliased(User)
+
+    pagination = db.session.query(following_alias). \
+        join(followers, followers.c.follower_id == following_alias.id). \
+        filter(followers.c.followed_id == user.id). \
+        paginate(page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+
     follower = pagination.items
-    return render_template('user/followers.html', user=user, pagination=pagination, follower=follower)
+    return render_template('user/followed.html', user=user, pagination=pagination, follower=follower)
 
 @app.before_request
 def before_request():
