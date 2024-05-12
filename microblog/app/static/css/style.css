@@ -132,7 +132,7 @@ The mainphoto page
     transition: 0.3s;
     border: none;
     padding: 0;
-    width: 60%;
+    width: 20%;
 }
 
 .card:hover {
@@ -140,7 +140,7 @@ The mainphoto page
 }
 
 .card-img-top {
-    width: 100%;
+    width: 60%;
     max-width: 100%;
     height: auto;
     object-fit: cover;
