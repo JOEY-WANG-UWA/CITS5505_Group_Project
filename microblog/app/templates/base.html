@@ -77,7 +77,9 @@
             </a>
           </li>
           <li class="nav-item">
-            <button class="btn btn-orange" type="button">Upload</button>
+            <a class="btn btn-orange" href="{{ url_for('upload') }}" title="Upload">
+              <i class="fas fa-cloud-upload-alt fa-lg"></i>
+            </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" aria-current="page" href="{{ url_for('logout') }}" title="Log out">
