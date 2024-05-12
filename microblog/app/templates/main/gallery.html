@@ -1,0 +1,78 @@
+{% extends "base.html" %}
+{% block title %}{{ uploads.id}}'s Photo{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+
+    {% for upload, collect_count in uploads_with_collection %}
+    <div class="card mb-3">
+        <div class="card-body">
+
+            {% if grouped_details[upload.id] %}
+            <img src="{{ url_for('static', filename='img/' + grouped_details[upload.id][0]) }}" class="card-img-top"
+                alt="Image for {{ upload.title }}" data-toggle="modal" data-target="#mediaModal{{ upload.id }}">
+            {% endif %}
+            <h5 class="card-title">{{ upload.title }}</h5>
+            <p class="card-text">{{ upload.updetails[0].description }}</p>
+            <p><i class="fas fa-heart" style="color: red;"></i> {{ collect_count }}</p>
+        </div>
+    </div>
+
+
+    <div class="modal fade" id="mediaModal{{ upload.id }}" tabindex="-1" role="dialog"
+        aria-labelledby="mediaModalLabel{{ upload.id }}" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="mediaModalLabel{{ upload.id }}">{{ upload.title }}</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+
+
+                    {% if grouped_details[upload.id] | length > 0 %}
+
+                    <div id="carouselExampleIndicators{{ upload.id }}" class="carousel slide" data-ride="carousel">
+                        <div class="carousel-inner">
+                            {% for filename in grouped_details[upload.id] %}
+                            {% if filename.endswith('.mp4') %}
+                            <div class="carousel-item {{ 'active' if loop.first else '' }}">
+                                <video class="d-block w-100" controls>
+                                    <source src="{{ url_for('static', filename='img/' + filename) }}" type="video/mp4">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                            {% elif filename.endswith(('.png', '.jpg', '.jpeg')) %}
+                            <div class="carousel-item {{ 'active' if loop.first else '' }}">
+                                <img src="{{ url_for('static', filename='img/' + filename) }}" class="d-block w-100"
+                                    alt="Image">
+                            </div>
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                        {% if grouped_details[upload.id] | length > 1 %}
+                        <a class="carousel-control-prev" href="#carouselExampleIndicators{{ upload.id }}" role="button"
+                            data-slide="prev">
+                            <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                            <span class="sr-only">Previous</span>
+                        </a>
+                        <a class="carousel-control-next" href="#carouselExampleIndicators{{ upload.id }}" role="button"
+                            data-slide="next">
+                            <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                            <span the="sr-only">Next</span>
+                        </a>
+                        {% endif %}
+                        <p class="text-muted">{{ upload.updetails[0].description }}</p>
+                        <p class="text-info">Likes: {{ upload.favourites }}</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+</div>
+{% endblock %}

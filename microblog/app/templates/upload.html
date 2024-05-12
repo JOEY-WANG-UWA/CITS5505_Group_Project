@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block title %}Upload{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dropzone.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+<style>
+  .dropzone {
+    margin: 20px 0;
+    border: 2px dashed #0087F7;
+    min-height: 400px;
+    position: relative;
+  }
+  .form-group {
+    margin-top: 20th0px;
+  }
+  .alert {
+    margin-top: 20px;
+  }
+  .btn-float-end {
+    position: absolute;
+    right: 20px;
+    bottom: -50px;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1>Upload</h1>
+  <form action="{{ url_for('upload') }}" method="post" enctype="multipart/formdata" class="dropzone" id="file-upload">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+      <label for="title">Titles</label>
+      <input type="text" id="title" name="titles" class="form-control" placeholder="Enter titles separated by commas" required>
+    </div>
+    <div class="form-group">
+      <label for="description">Descriptions</label>
+      <textarea id="description" name="descriptions" class="form-control" placeholder="Enter descriptions separated by commas" rows="3" required></textarea>
+    </div>
+    <div class="form-group">
+      <label for="hashtag">Hashtags</label>
+      <input type="text" id="hashtag" name="hashtags" class="form-control" placeholder="Enter hashtags separated by commas" required>
+    </div>
+    <button type="submit" class="btn btn-success">Upload</button>
+  </form>
+  <a class="btn btn-primary btn-float-end" href="{{ url_for('index') }}">Done</a>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-info" role="alert">
+        {{ messages[0] }}
+      </div>
+    {% endif %}
+  {% endwith %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/dropzone.min.js') }}"></script>
+<script>
+  Dropzone.options.fileUpload = {
+    paramName: "photos", // The name that will be used to transfer the file
+    maxFilesize: 2, // MB
+    acceptedFiles: 'image/jpeg,image/png,image/gif',
+    init: function() {
+      this.on("success", function(file, responseText) {
+        // Handle responses or update UI upon success
+      });
+    }
+  };
+</script>
+{% endblock %}
