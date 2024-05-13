@@ -1,22 +1,30 @@
-<link rel="stylesheet" href="../static/css/style.css">
-
-{% from 'bootstrap5/pagination.html' import render_pagination %}
-
 {% block content %}
 {% include 'user.html' %}
-<div class="row">
-  <div class="col-md-12">
-    {% if results %}
-{#      {% for collection in collections %}#}
-          <h3> Collections are working.</h3>
-{#    this is not finished yet  {{ photo_card(collection) }}#}
-{#      {% endfor %}#}
-    {% else %}
-    <div class="tip">
-      <h3>No collections found.</h3>
+<div class="container">
+    <div class="row">
+        {% if results %}
+            {% for result in results %}
+            <div class="col-md-4">
+                <div class="note-card">
+                    <!-- Card Content -->
+                    <div class="card">
+                        <img class="card-img-top" src="{{ url_for('static', filename='img/' ~ result.Upload_detail.upload_item) }}" alt="Card image cap">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ result.Upload.title }}</h5>
+                            <div class="card-footer">
+                                <img src="{{ url_for('static', filename='img/avatar/' ~ result.Upload.user.avatar) }}" alt="{{ result.Upload.user.username }}'s avatar" class="avatar">
+                                <small class="text-muted">{{ user.username }}</small>
+                                <small class="text-muted">Collections: {{ result.collection_count }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        {% else %}
+            <p>No notes found.</p>
+        {% endif %}
     </div>
-    {% endif %}
-  </div>
 </div>
 {% endblock %}
 

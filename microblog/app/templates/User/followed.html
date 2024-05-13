@@ -1,29 +1,33 @@
+
 {% from 'bootstrap5/pagination.html' import render_pagination %}
-{#{% from 'macros.html' import user_card with context %}#}
 
 
 {% block content %}
 {% include 'user.html' %}
-<div class="row">
-  <div class="col-md-12">
-    {% if follower %}
-        <h3>has followers.</h3>
-{#      {% for follower in followers %}#}
-{#        {% if follower != user %}#}
 
-{#        {{ user_card(user=follower) }}#}
-{#        {% endif %}#}
-{#      {% endfor %}#}
-    {% else %}
-    <div class="tip">
-      <h3>No followers.</h3>
+{% macro user_card(user) %}
+<div class="row">
+    <div class="col-md-12">
+        {% if follower %}
+            {% for person in follower %}
+                <a href="{{ url_for('user.html', username=person.username) }}">
+                <img src="{{ url_for('static', filename='img/avatar/' ~ person.avatar) }}" alt="{{ person.username }}'s profile picture" >
+                <h6>
+                    <a class="text-decoration-none" href="{{ url_for('user.index', username=person.username) }}">{{ person.username }}</a>
+                </h6>
+            {% endfor %}
+        {% else %}
+            <div class="tip">
+                <h3>No followers.</h3>
+            </div>
+        {% endif %}
     </div>
-    {% endif %}
-  </div>
 </div>
-{% if followers|length != 1 %}
-<div class="page-footer">
-  {{ render_pagination(pagination) }}
-</div>
+{% endmacro %}
+
+{% if pagination.total > 1 %}
+    <div class="page-footer">
+        {{ render_pagination(pagination) }}
+    </div>
 {% endif %}
 {% endblock %}

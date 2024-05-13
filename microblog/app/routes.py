@@ -215,65 +215,39 @@ def register():
 def user(username):
     user = db.first_or_404(sa.select(User).where(User.username == username))
     page = request.args.get('page', 1, type=int)
-    query = user.posts.select().order_by(Post.timestamp.desc())
-    posts = db.paginate(query, page=page,
-                        per_page=app.config['POSTS_PER_PAGE'],
-                        error_out=False)
-    next_url = url_for('user', username=user.username, page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('user', username=user.username, page=posts.prev_num) \
-        if posts.has_prev else None
-    form = EmptyForm()
-    return render_template('user.html', user=user, posts=posts.items,
-                           next_url=next_url, prev_url=prev_url, form=form)
+
+    return render_template('user.html', user=user)
 
 
 
 @app.route('/user/<username>/check_collections')
 @login_required
 def check_collections(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
-    page = request.args.get('page', 1, type=int)
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail, Collection)
-        .join(Collection, Collection.user_id == Upload.user_id)  # Linking collections to user
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Collection.user_id == user.id)  # Filtering collections by the user
-        .order_by(Collection.collect_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE'] # Assume 'per_page' is set to 10, adjust as necessary
-    )
+    # Fetch the user by username or return 404 if not found
+    user = db.session.query(User).filter_by(username=username).first_or_404()
 
+    # Pagination settings
+    page = request.args.get('page', 1, type=int)
+    per_page = app.config.get('POSTS_PER_PAGE', 10)
+
+    # Build the query to fetch uploads and their details where collections are linked to this user
+    query = db.session.query(
+        Upload,
+        Upload_detail,
+        func.count(Collection.id).label('collection_count')
+    ).join(Upload_detail, Upload_detail.upload_id == Upload.id) \
+        .outerjoin(Collection, Collection.upload_id == Upload.id) \
+        .filter(Collection.user_id == user.id) \
+        .group_by(Upload.id, Upload_detail.id) \
+        .order_by(Upload.upload_time.desc())
+
+    # Execute pagination on the query
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     results = pagination.items
+
+    # Render the template with the collected data
     return render_template('user/collections.html', user=user, pagination=pagination, results=results)
 
-
-@app.route('/user/<username>/likes')
-@login_required
-def show_likes(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
-    page = request.args.get('page', 1, type=int)
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail, Favourite)
-        .join(Favourite, Favourite.user_id == Upload.user_id)  # Linking collections to user
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Favourite.user_id == user.id)  # Filtering collections by the user
-        .order_by(Favourite.favourite_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE']  # Assume 'per_page' is set to 10, adjust as necessary
-    )
-    results = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
 
 @app.route('/user/<username>/following')
 @login_required
@@ -294,24 +268,25 @@ def show_following(username):
 @app.route('/user/<username>/show_notes')
 @login_required
 def show_note(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
-    page = request.args.get('page', 1, type=int)
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail)
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Upload.user_id == user.id)  # Filtering collections by the user
-        .order_by(Upload.upload_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE']  # Assume 'per_page' is set to 10, adjust as necessary
-    )
-    results = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
+    user = db.session.query(User).filter_by(username=username).first_or_404()
 
+    page = request.args.get('page', 1, type=int)
+    per_page = app.config.get('POSTS_PER_PAGE', 10)
+
+    query = db.session.query(
+        Upload,
+        Upload_detail,
+        func.count(Collection.id).label('collection_count')
+    ).join(Upload_detail, Upload_detail.upload_id == Upload.id) \
+     .outerjoin(Collection, Collection.upload_id == Upload.id) \
+     .filter(Upload.user_id == user.id) \
+     .group_by(Upload.id, Upload_detail.id) \
+     .order_by(Upload.upload_time.desc())
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    results = pagination.items
+
+    return render_template('User/collections.html', user=user, pagination=pagination, results=results)
 @app.route('/user/<username>/followers')
 @login_required
 def show_follower(username):

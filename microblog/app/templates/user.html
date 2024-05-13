@@ -5,7 +5,7 @@
         <!-- Profile Header -->
         <div class="profile-header d-flex justify-content-start">
             <div>
-                <img src="{{ user.avatar(128) }}" alt="{{ user.username }}'s profile picture" class="profile-pic">
+                <img src="{{ url_for('static', filename='img/avatar/' ~ user.avatar) }}" alt="{{ user.username }}'s profile picture" class="profile-pic">
             </div>
             <div class="profile-info ml-3">
                 <h3>{{ user.username }}</h3>
@@ -48,11 +48,6 @@
                     <li class="nav-item">
                         <a class="nav-link" href="{{ url_for('check_collections', username=user.username) }}">
                             Collections <span class="badge badge-light">{{ user.collections_count }}</span>
-                        </a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('show_likes', username=user.username) }}">
-                            Likes <span class="badge badge-light">{{ user.likes_count }}</span>
                         </a>
                     </li>
                     <li class="nav-item">
