@@ -14,6 +14,6 @@ class Config:
     UPLOAD_PATH = os.path.join(basedir, 'uploads') # Path to the folder where uploaded files will be stored
     DROPZONE_UPLOAD_MULTIPLE = True
     DROPZONE_ALLOWED_FILE_CUSTOM = True
-    DROPZONE_MAX_FILE_SIZE = 3
+    DROPZONE_MAX_FILE_SIZE = 20
     DROPZONE_PARALLEL_UPLOADS = 9
     UPLOAD_FOLDER = '/Users/imac/Desktop/z/CITS5505_Group_Project1/microblog/Upload'####
