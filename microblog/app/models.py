@@ -59,8 +59,8 @@ class User(UserMixin, db.Model):
         return check_password_hash(self.password_hash, password)
 
     def avatar(self, size=128):
-        if self.avatar_url:
-            return self.avatar_url
+        if self.avatar:
+            return self.avatar
         digest = md5(self.email.lower().encode('utf-8')).hexdigest()
         return f'https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}'
 
