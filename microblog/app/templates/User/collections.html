@@ -1,16 +1,17 @@
-<link rel="stylesheet" href="../static/css/style.css">
-
+{% extends 'base.html' %}
 {% from 'bootstrap5/pagination.html' import render_pagination %}
+
+{% block title %}{{ user.name }}'s Collection{% endblock %}
 
 {% block content %}
 {% include 'user.html' %}
 <div class="row">
   <div class="col-md-12">
-    {% if results %}
-{#      {% for collection in collections %}#}
-          <h3> Collections are working.</h3>
+    {% if collections %}
+      {% for collection in collections %}
+          <h3> collections are working.</h3>
 {#    this is not finished yet  {{ photo_card(collection) }}#}
-{#      {% endfor %}#}
+      {% endfor %}
     {% else %}
     <div class="tip">
       <h3>No collections found.</h3>
@@ -18,5 +19,5 @@
     {% endif %}
   </div>
 </div>
+{% endif %}
 {% endblock %}
-

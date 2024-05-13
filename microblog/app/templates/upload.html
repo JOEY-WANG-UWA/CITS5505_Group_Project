@@ -1,89 +1,75 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-{% block title %}Upload File{% endblock %}
+{% block title %}Upload{% endblock %}
+
+{% block styles %}
+{{ super() }}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dropzone.min.css') }}">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/custom.css') }}">
+<style>
+  .dropzone {
+    margin: 20px 0;
+    border: 2px dashed #0087F7;
+    min-height: 400px;
+    position: relative;
+  }
+  .form-group {
+    margin-top: 20th0px;
+  }
+  .alert {
+    margin-top: 20px;
+  }
+  .btn-float-end {
+    position: absolute;
+    right: 20px;
+    bottom: -50px;
+  }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-    <h1 class="mb-4">Upload a File</h1>
-
-    <!-- Display flash messages -->
-    {% for message in get_flashed_messages() %}
-        <div class="alert alert-info" aria-live="polite">{{ message }}</div>
-    {% endfor %}
-
-    <!-- Create the form for file upload -->
-    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
-        {{ form.hidden_tag() }}
-
-        <div class="form-group mb-3">
-            {{ form.title.label(class_="form-label") }}
-            {{ form.title(class_="form-control", size=32, aria_describedby="title-error") }}
-            {% if form.title.errors %}
-                <div id="title-error" class="invalid-feedback d-block">
-                {% for error in form.title.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group mb-3">
-            {{ form.hashtag.label(class_="form-label") }}
-            {{ form.hashtag(class_="form-control", aria_describedby="hashtag-error") }}
-            {% if form.hashtag.errors %}
-                <div id="hashtag-error" class="invalid-feedback d-block">
-                {% for error in form.hashtag.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group mb-3">
-            {{ form.description.label(class_="form-label") }}
-            {{ form.description(class_="form-control", rows=4, aria_describedby="description-error") }}
-            {% if form.description.errors %}
-                <div id="description-error" class="invalid-feedback d-block">
-                {% for error in form.description.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-
-        <div class="form-group mb-3">
-          {{ form.file.label(class="form-label") }}
-          <!-- Add 'multiple' attribute and ensure name is adjusted to accept multiple files -->
-          {{ form.file(class="form-control", aria_describedby="file-error", multiple="multiple") }}
-          {% if form.file.errors %}
-              <div id="file-error" class="invalid-feedback d-block">
-              {% for error in form.file.errors %}
-                  <p>{{ error }}</p>
-              {% endfor %}
-              </div>
-          {% endif %}
-        </div>
-    
-        <div class="form-group">
-            {{ form.submit(class_="btn btn-primary") }}
-        </div>
-    </form>
+<div class="container">
+  <h1>Upload</h1>
+  <form action="{{ url_for('upload') }}" method="post" enctype="multipart/formdata" class="dropzone" id="file-upload">
+    {{ form.hidden_tag() }}
+    <div class="form-group">
+      <label for="title">Titles</label>
+      <input type="text" id="title" name="titles" class="form-control" placeholder="Enter titles separated by commas" required>
+    </div>
+    <div class="form-group">
+      <label for="description">Descriptions</label>
+      <textarea id="description" name="descriptions" class="form-control" placeholder="Enter descriptions separated by commas" rows="3" required></textarea>
+    </div>
+    <div class="form-group">
+      <label for="hashtag">Hashtags</label>
+      <input type="text" id="hashtag" name="hashtags" class="form-control" placeholder="Enter hashtags separated by commas" required>
+    </div>
+    <button type="submit" class="btn btn-success">Upload</button>
+  </form>
+  <a class="btn btn-primary btn-float-end" href="{{ url_for('index') }}">Done</a>
+  {% with messages = get_flashed_messages() %}
+    {% if messages %}
+      <div class="alert alert-info" role="alert">
+        {{ messages[0] }}
+      </div>
+    {% endif %}
+  {% endwith %}
 </div>
 {% endblock %}
 
 {% block scripts %}
+{{ super() }}
+<script src="{{ url_for('static', filename='js/dropzone.min.js') }}"></script>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    var forms = document.querySelectorAll('.needs-validation');
-    Array.prototype.slice.call(forms).forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
-                event.preventDefault();
-                event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        }, false);
-    });
-});
+  Dropzone.options.fileUpload = {
+    paramName: "photos", // The name that will be used to transfer the file
+    maxFilesize: 2, // MB
+    acceptedFiles: 'image/jpeg,image/png,image/gif',
+    init: function() {
+      this.on("success", function(file, responseText) {
+        // Handle responses or update UI upon success
+      });
+    }
+  };
 </script>
 {% endblock %}
