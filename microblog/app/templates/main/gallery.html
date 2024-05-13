@@ -2,11 +2,10 @@
 {% block title %}{{ uploads.id}}'s Photo{% endblock %}
 
 {% block content %}
-<div class="container mt-5">
-
-    <div class="container mt-5">
+<main role="main" class="container mt-4">
+    <div class="masonry-container">
         {% for upload_id,details in grouped_details.items() %}
-        <div class="card mb-3">
+        <div class="masonry-item card mb-3">
             <div class="card-body">
                 <!-- Check if there are details for the current upload and if it has at least one item -->
                 {% if details.items %}
@@ -90,8 +89,7 @@
                 </div>
             </div>
         </div>
+        {% endfor %}
     </div>
-    {% endfor %}
-</div>
-
+</main>
 {% endblock %}
