@@ -4,7 +4,7 @@
 
 {% block content %}
 <div class="container mt-5">
-    <h1 class="mb-4">Upload a File</h1>
+    <h1 class="mb-4 text-center">Upload a File</h1>
 
     <!-- Display flash messages -->
     {% for message in get_flashed_messages() %}
@@ -12,7 +12,7 @@
     {% endfor %}
 
     <!-- Create the form for file upload -->
-    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+    <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data" id="file-upload">
         {{ form.hidden_tag() }}
 
         <div class="form-group mb-3">
@@ -20,9 +20,9 @@
             {{ form.title(class_="form-control", size=32, aria_describedby="title-error") }}
             {% if form.title.errors %}
                 <div id="title-error" class="invalid-feedback d-block">
-                {% for error in form.title.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
+                    {% for error in form.title.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
                 </div>
             {% endif %}
         </div>
@@ -32,9 +32,9 @@
             {{ form.hashtag(class_="form-control", aria_describedby="hashtag-error") }}
             {% if form.hashtag.errors %}
                 <div id="hashtag-error" class="invalid-feedback d-block">
-                {% for error in form.hashtag.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
+                    {% for error in form.hashtag.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
                 </div>
             {% endif %}
         </div>
@@ -44,45 +44,163 @@
             {{ form.description(class_="form-control", rows=4, aria_describedby="description-error") }}
             {% if form.description.errors %}
                 <div id="description-error" class="invalid-feedback d-block">
-                {% for error in form.description.errors %}
-                    <p>{{ error }}</p>
-                {% endfor %}
+                    {% for error in form.description.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
                 </div>
             {% endif %}
         </div>
 
+        <!-- Dropzone.js drop area -->
         <div class="form-group mb-3">
-          {{ form.file.label(class="form-label") }}
-          <!-- Add 'multiple' attribute and ensure name is adjusted to accept multiple files -->
-          {{ form.file(class="form-control", aria_describedby="file-error", multiple="multiple") }}
-          {% if form.file.errors %}
-              <div id="file-error" class="invalid-feedback d-block">
-              {% for error in form.file.errors %}
-                  <p>{{ error }}</p>
-              {% endfor %}
-              </div>
-          {% endif %}
+            <label for="dropzone-area" class="form-label">File</label>
+            <div id="dropzone-area" class="dropzone dz-custom"></div>
+            {% if form.file.errors %}
+                <div id="file-error" class="invalid-feedback d-block">
+                    {% for error in form.file.errors %}
+                        <p>{{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
-    
-        <div class="form-group">
-            {{ form.submit(class_="btn btn-primary") }}
+
+        <input type="hidden" name="files" id="files" value="">
+
+        <div class="form-group text-center">
+            {{ form.submit(class_="btn btn-primary btn-lg") }}
         </div>
     </form>
 </div>
 {% endblock %}
 
+{% block styles %}
+<style>
+    .dropzone.dz-custom {
+        border: 2px dashed #007bff;
+        border-radius: 5px;
+        background: #f8f9fa;
+        padding: 20px;
+    }
+    .dropzone.dz-custom .dz-message {
+        color: #007bff;
+        font-size: 1.25rem;
+    }
+    .form-control, .form-select {
+        border-radius: 5px;
+    }
+    .btn-primary {
+        border-radius: 5px;
+    }
+</style>
+{% endblock %}
+
 {% block scripts %}
 <script>
 document.addEventListener("DOMContentLoaded", function () {
-    var forms = document.querySelectorAll('.needs-validation');
-    Array.prototype.slice.call(forms).forEach(function (form) {
-        form.addEventListener('submit', function (event) {
-            if (!form.checkValidity()) {
+    // Prevent Dropzone from auto discovering the form
+    Dropzone.autoDiscover = false;
+
+    // Initialize Dropzone
+    var myDropzone = new Dropzone("#dropzone-area", {
+        url: "{{ url_for('upload') }}",  // Ensure this matches your Flask route
+        paramName: "file",
+        maxFilesize: 2, // MB
+        acceptedFiles: ".jpg,.jpeg,.png,.gif,.webp",
+        dictDefaultMessage: "Drag files here or click to upload",
+        autoProcessQueue: false,  // Prevent auto upload
+        uploadMultiple: true,  // Upload multiple files in one request
+        parallelUploads: 10,  // Number of parallel uploads
+        addRemoveLinks: true,  // Add remove links
+        init: function() {
+            var myDropzone = this;
+            var fileList = [];
+
+            // Handle form submission
+            document.querySelector("#file-upload").addEventListener("submit", function(event) {
                 event.preventDefault();
                 event.stopPropagation();
-            }
-            form.classList.add('was-validated');
-        }, false);
+
+                if (myDropzone.getQueuedFiles().length > 0) {
+                    // Create a FormData object and append form data
+                    var formData = new FormData(this);
+                    // Append each file to the FormData object
+                    myDropzone.getQueuedFiles().forEach(function(file) {
+                        formData.append("file", file);
+                    });
+
+                    // Use XMLHttpRequest to send the form data
+                    var xhr = new XMLHttpRequest();
+                    xhr.open("POST", "{{ url_for('upload') }}", true);
+                    xhr.onload = function () {
+                        if (xhr.status === 200) {
+                            window.location.href = "{{ url_for('index') }}";
+                        } else {
+                            // Handle error
+                            alert("An error occurred: " + xhr.responseText);
+                        }
+                    };
+                    xhr.send(formData);
+                } else {
+                    // If no files, just submit the form
+                    this.submit();
+                }
+            });
+
+            // Append form data to the file upload
+            this.on("sendingmultiple", function(files, xhr, formData) {
+                var formElements = document.querySelectorAll("#file-upload input, #file-upload select, #file-upload textarea");
+                formElements.forEach(function(element) {
+                    formData.append(element.name, element.value);
+                });
+            });
+
+            // Handle file added event
+            this.on("addedfile", function(file) {
+                fileList.push(file.name);
+            });
+
+            // Handle file removed event
+            this.on("removedfile", function(file) {
+                var index = fileList.indexOf(file.name);
+                if (index > -1) {
+                    fileList.splice(index, 1);
+                }
+            });
+
+            // Handle successful file upload
+            this.on("successmultiple", function(files, response) {
+                // Optionally handle successful uploads
+                window.location.href = "{{ url_for('index') }}";
+            });
+
+            // Handle upload errors
+            this.on("errormultiple", function(files, response) {
+                // Ensure response is converted to string if necessary
+                if (typeof response !== "string") {
+                    response = JSON.stringify(response);
+                }
+                files.forEach(function(file) {
+                    file.previewElement.querySelector(".dz-error-message").textContent = response;
+                });
+            });
+        }
+    });
+
+    // Initialize Sortable on Dropzone element
+    Sortable.create(myDropzone.element, {
+        draggable: ".dz-preview",
+        onEnd: function(evt) {
+            var files = myDropzone.getAcceptedFiles();
+            var orderedFiles = [];
+            document.querySelectorAll("#dropzone-area .dz-preview").forEach(function(element) {
+                var filename = element.querySelector(".dz-filename span").innerText;
+                var file = files.find(f => f.name === filename);
+                if (file) {
+                    orderedFiles.push(file);
+                }
+            });
+            myDropzone.files = orderedFiles;
+        }
     });
 });
 </script>

@@ -33,7 +33,7 @@ from sqlalchemy import select, func, distinct
 from .forms import DescriptionForm
 from .forms import CommentForm
 from flask import jsonify
-
+import uuid
 
 @app.before_request
 def before_request():
@@ -515,36 +515,43 @@ def view_details():
 @login_required
 def upload():
     form = UploadForm()
-    if form.validate_on_submit():
-        try:
-            new_upload = Upload(
-                user_id=current_user.id,
-                title=form.title.data,
-                hashtag=form.hashtag.data,
-                description=form.description.data,
-                upload_time=datetime.now(timezone.utc)
-            )
-            db.session.add(new_upload)
-            db.session.flush()
+    if request.method == 'POST':
+        if form.validate_on_submit():
+            try:
+                # Create a new upload entry
+                new_upload = Upload(
+                    user_id=current_user.id,
+                    title=form.title.data,
+                    hashtag=form.hashtag.data,
+                    description=form.description.data,
+                    upload_time=datetime.now(timezone.utc)
+                )
+                db.session.add(new_upload)
+                db.session.flush()
 
-            files = request.files.getlist('file')
-            for file in files:
-                if file: 
-                    filename = secure_filename(file.filename)
-                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                    file.save(file_path)
+                # Process each file in the request
+                files = request.files.getlist('file')
+                for file in files:
+                    if file:
+                        filename = secure_filename(file.filename)
+                        unique_filename = str(uuid.uuid4()) + "_" + filename
+                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file.save(file_path)
 
-                    new_detail = Upload_detail(
-                        upload_id=new_upload.id,
-                        upload_item=filename,
-                    )
-                    db.session.add(new_detail)
+                        # Create a new upload detail entry
+                        new_detail = Upload_detail(
+                            upload_id=new_upload.id,
+                            upload_item=unique_filename,
+                        )
+                        db.session.add(new_detail)
 
-            db.session.commit()
-            flash('All files successfully uploaded as part of the same post!')
-            return redirect(url_for('index'))
-        except Exception as e:
-            db.session.rollback()
-            flash('An error occurred: ' + str(e), 'error')
-            return redirect(url_for('upload'))
+                db.session.commit()
+                flash('All files successfully uploaded as part of the same post!')
+                return jsonify({"message": "Upload successful"})
+            except Exception as e:
+                db.session.rollback()
+                flash('An error occurred: ' + str(e), 'error')
+                return jsonify({"error": str(e)}), 400
+        else:
+            return jsonify({"errors": form.errors}), 400
     return render_template('upload.html', form=form)
