@@ -127,6 +127,10 @@ The mainphoto page
 }
 
 /* pop_up windows */
+/*layout*/
+
+
+
 .card {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: 0.3s;
@@ -145,7 +149,14 @@ The mainphoto page
     height: auto;
     object-fit: cover;
     display: block;
-    margin: 0 auto;
+    margin: 10 auto;
+}
+
+.creative-text {
+    font-family: 'Pacifico', cursive;
+    margin-top: 20px;
+    font-size: 20px;
+    color: #333;
 }
 
 .card,
@@ -166,4 +177,63 @@ The mainphoto page
     color: red;
     font-size: 16px;
 
+}
+
+
+html,
+body {
+    min-width: 800px;
+}
+
+.masonry-container {
+    column-count: 6;
+    column-gap: 1em;
+}
+
+.masonry-item {
+    break-inside: avoid;
+    margin-bottom: 1em;
+    background-color: #ffffff;
+    display: block;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.masonry-item img {
+    width: 100%;
+    vertical-align: bottom;
+}
+
+.masonry-item h2 {
+    font-size: 1em;
+    margin-bottom: 0.5em;
+    color: #000000;
+    text-align: center;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+
+/* Ensure that images are not stretched */
+img {
+    image-rendering: high-quality;
+}
+
+@media (max-width: 1000px) {
+    .masonry-container {
+        column-count: 3;
+    }
+}
+
+@media (max-width: 1300px) {
+    .masonry-container {
+        column-count: 4;
+    }
+}
+
+@media (max-width: 1600px) {
+    .masonry-container {
+        column-count: 5;
+    }
 }

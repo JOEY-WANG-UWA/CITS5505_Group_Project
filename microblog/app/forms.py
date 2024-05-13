@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, PasswordField, BooleanField, SubmitField, SelectField
+from wtforms import StringField, PasswordField, BooleanField, SubmitField
 from wtforms.validators import DataRequired
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, BooleanField, SubmitField
@@ -90,25 +90,14 @@ class MessageForm(FlaskForm):
     submit = SubmitField(_l('Submit'))
 
 
-class UploadForm(FlaskForm): 
-    title = StringField('Title', validators=[DataRequired(message="Title is required")])
-    hashtag = SelectField('Hashtag', choices=[
-        ('', '--Select--'),  # Default selection
-        ('fashion', 'Fashion'),
-        ('food', 'Food'),
-        ('makeup', 'Makeup'),
-        ('movies', 'Movies'),
-        ('career', 'Career'),
-        ('home_decoration', 'Home Decoration'),
-        ('games', 'Games'),
-        ('travel', 'Travel'),
-        ('fitness', 'Fitness')
-    ], validators=[DataRequired()])
-    file = FileField('File', validators=[
-        FileRequired(message="File upload is required"),
-        FileAllowed(['webp','jpg', 'jpeg', 'png', 'gif'], 'Upload Images Only!')
+class UploadForm(FlaskForm):
+    photo = FileField('Upload Image', validators=[
+        FileRequired(),
+        FileAllowed(['webp', 'jpg', 'jpeg', 'png', 'gif'], 'Images only!')
     ], render_kw={"multiple": True})
-    description = TextAreaField('Description', validators=[DataRequired(message="Description is required")])
+    title = StringField('Title', validators=[DataRequired()])
+    hashtag = StringField('Hashtag')
+    description = TextAreaField('Description')
     submit = SubmitField('Upload')
 
 

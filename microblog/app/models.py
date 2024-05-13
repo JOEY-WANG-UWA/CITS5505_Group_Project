@@ -15,11 +15,6 @@ from app.search import add_to_index, remove_from_index, query_index
 import json
 from time import time
 
-@login.user_loader
-def load_user(id):
-    return db.session.get(User, int(id))
-
-
 followers = sa.Table(
     'followers',
     db.metadata,
@@ -28,7 +23,6 @@ followers = sa.Table(
     sa.Column('followed_id', sa.Integer, sa.ForeignKey('user.id'),
               primary_key=True)
 )
-<<<<<<< HEAD
 
 
 @login.user_loader
@@ -36,8 +30,6 @@ def load_user(id):
     return db.session.get(User, int(id))
 
 
-=======
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
 class User(UserMixin, db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     username: so.Mapped[str] = so.mapped_column(sa.String(64), index=True,
@@ -249,7 +241,6 @@ class Notification(db.Model):
     def get_data(self):
         return json.loads(str(self.payload_json))
 
-<<<<<<< HEAD
 
 # class Follow(db.Model):
 #    follower_id: so.Mapped[int] = so.mapped_column(
@@ -258,8 +249,6 @@ class Notification(db.Model):
 #        sa.ForeignKey('user.id'), primary_key=True)
 
 
-=======
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
 class Upload(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
@@ -267,10 +256,7 @@ class Upload(db.Model):
     title: so.Mapped[str] = so.mapped_column(sa.String(140))
     upload_time: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
-<<<<<<< HEAD
     hashtag: so.Mapped[str] = so.mapped_column(sa.String(140))
-=======
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
     description: so.Mapped[str] = so.mapped_column(sa.String(300))
     updetails = db.relationship(
         'Upload_detail', backref='uploads', lazy='dynamic')
@@ -307,13 +293,10 @@ class Collection(db.Model):
 
 class Comment(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
-    post_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Post.id),
-                                               index=True)
+    upload_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(Upload.id),
+                                                 index=True)
     user_id: so.Mapped[int] = so.mapped_column(sa.ForeignKey(User.id),
                                                index=True)
     comment_time: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
-<<<<<<< HEAD
     comment_content: so.Mapped[str] = so.mapped_column(sa.String(300))
-=======
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa

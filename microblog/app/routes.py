@@ -1,15 +1,11 @@
-<<<<<<< HEAD
 from flask import Flask, render_template
 from flask import render_template, flash, redirect, url_for
-=======
-from flask import render_template, flash, redirect, url_for,request
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
 from app import app
 from app.forms import LoginForm
 from flask_login import current_user, login_user
 import sqlalchemy as sa
 from app.models import User
-from sqlalchemy.orm import joinedload,aliased
+from sqlalchemy.orm import joinedload
 from flask_login import logout_user
 from flask import request, g
 from urllib.parse import urlsplit
@@ -20,11 +16,7 @@ from datetime import datetime, timezone
 from app.forms import EditProfileForm
 from app.forms import PostForm
 from app.forms import EmptyForm
-<<<<<<< HEAD
 from app.models import Post, Collection, Favourite
-=======
-from app.models import Post, Collection, Favourite, followers
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
 from app.forms import ResetPasswordRequestForm
 from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
@@ -36,7 +28,6 @@ from app.models import Upload
 from app.models import Upload_detail
 from app.models import Favourite
 from flask_babel import _, get_locale
-<<<<<<< HEAD
 from app.forms import UploadForm
 from werkzeug.utils import secure_filename
 import os
@@ -46,8 +37,6 @@ from sqlalchemy import select, func, distinct
 from .forms import DescriptionForm
 from .forms import CommentForm
 from flask import jsonify
-=======
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
 
 
 @app.before_request
@@ -58,32 +47,41 @@ def before_request():
         g.search_form = SearchForm()
 
 
-<<<<<<< HEAD
 @ app.route('/')
 @ app.route('/gallery')
 def gallery():
     uploads = Upload.query.all()
     grouped_details = defaultdict(dict)
 
+    comments_with_user = db.session.query(
+        Upload.id,
+        Comment.comment_content,
+        Comment.comment_time,
+        User.username).select_from(Comment).join(User).outerjoin(Upload, Upload.id == Comment.upload_id).all()
+
     uploads_with_collection = db.session.query(
         Upload.id,
         Upload.title,
         User.username,
         Upload.description,
-        Comment.comment_content,
         func.count(distinct(Collection.id)).label('collect_count'),
         func.count(distinct(Comment.id)).label('comment_count')
     ).select_from(Upload).join(User).outerjoin(Collection, Collection.upload_id == Upload.id).outerjoin(Comment, Comment.upload_id == Upload.id).group_by(Upload.id, Upload.title, User.username).all()
 
-    # for upload in uploads_with_collection:
-    # print(upload)
+    uploads_count = db.session.query(
+        Upload.id,
+        func.count(distinct(Collection.id)).label('collect_count'),
+        func.count(distinct(Comment.id)).label('comment_count')
+    ).select_from(Upload).outerjoin(Collection, Collection.upload_id == Upload.id).outerjoin(Comment, Comment.upload_id == Upload.id).group_by(Upload.id).all()
 
-    for upload_id, title, username, description, comment, collect_count, comment_count in uploads_with_collection:
+    for count in uploads_count:
+        print(count)
+
+    for upload_id, title, username, description, collect_count, comment_count in uploads_with_collection:
         grouped_details[upload_id] = {
             'title': title,
             'username': username,
             'description': description,
-            'comment': comment,
             'collect_count': collect_count,
             'comment_count': comment_count,
             'items': []
@@ -92,11 +90,20 @@ def gallery():
         for detail in upload.updetails:
             grouped_details[upload.id]['items'].append(detail.upload_item)
     print(grouped_details)
-    return render_template('main/gallery.html', grouped_details=grouped_details, uploads=uploads, uploads_with_collection=uploads_with_collection)
+    return render_template('main/gallery.html', grouped_details=grouped_details, uploads_count=uploads_count,
+                           uploads=uploads, uploads_with_collection=uploads_with_collection, comments_with_user=comments_with_user)
 
 
 if __name__ == '__main__':
     app.run(debug=True)
+
+
+@app.template_filter()
+def to_int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
 
 
 @app.route('/add_to_collection/<int:upload_id>', methods=['POST'])
@@ -110,14 +117,15 @@ def add_to_collection(upload_id):
         db.session.delete(collection)
         db.session.commit()
         new_count = Collection.query.filter_by(upload_id=upload_id).count()
-        return jsonify({'success': True, 'newCount': new_count})
+        return jsonify({'success': True, 'newCount': new_count, 'liked': False})
     else:
         new_collection = Collection(
             upload_id=upload_id, user_id=current_user.id)
         db.session.add(new_collection)
         db.session.commit()
         new_count = Collection.query.filter_by(upload_id=upload_id).count()
-        return jsonify({'success': True, 'newCount': new_count})
+        return jsonify({'success': True, 'newCount': new_count, 'liked': True})
+
 
 # @app.route('/add_to_collection/<int:upload_id>', methods=['POST'])
 # def add_to_collection(upload_id):
@@ -145,14 +153,8 @@ def post_comment(upload_id):
     )
     db.session.add(new_comment)
     db.session.commit()
-
-    return jsonify({'success': True, 'message': 'Comment posted', 'username': current_user.username})
-=======
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    details = Upload_detail.query.all()
-    return render_template("base.html", details=details)
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
+    new_count = Comment.query.filter_by(upload_id=upload_id).count()
+    return jsonify({'success': True, 'newCount': new_count, 'message': 'Comment posted', 'username': current_user.username})
 
 
 @app.route('/index', methods=['GET', 'POST'])
@@ -289,7 +291,6 @@ def show_likes(username):
     # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
     query = (
         sa.select(Upload, Upload_detail, Favourite)
-<<<<<<< HEAD
         # Linking collections to user
         .join(Favourite, Favourite.user_id == user.id)
         # Linking uploads to their details
@@ -300,12 +301,6 @@ def show_likes(username):
         .filter(Favourite.user_id == user.id)
         # Ordering by the collection time
         .order_by(Favourite.favourite_time.desc())
-=======
-        .join(Favourite, Favourite.user_id == Upload.user_id)  # Linking collections to user
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Favourite.user_id == user.id)  # Filtering collections by the user
-        .order_by(Favourite.favourite_time.desc())  # Ordering by the collection time
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
     )
     # Pagination setup
     pagination = db.paginate(
@@ -323,7 +318,6 @@ def show_likes(username):
 def show_following(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
-<<<<<<< HEAD
     pagination = db.paginate(
         sa.select(User)
         .join(followers, followers.followed_id == User.id)
@@ -332,16 +326,6 @@ def show_following(username):
         page=page,
         per_page=app.config['POSTS_PER_PAGE']
     )
-=======
-    # We use an aliased User to distinguish between the follower and followed in the join
-    followed_alias = aliased(User)
-
-    pagination = db.session.query(followed_alias). \
-        join(followers, followers.c.followed_id == followed_alias.id). \
-        filter(followers.c.follower_id == user.id). \
-        paginate(page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
-
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
     following = pagination.items
     return render_template('user/following.html', user=user, pagination=pagination, following=following)
 
@@ -349,9 +333,8 @@ def show_following(username):
 @app.route('/user/<username>/following')
 @login_required
 def show_note(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
+    user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
-<<<<<<< HEAD
     pagination = db.paginate(
         sa.select(User)
         # Linking uploads to their details
@@ -366,33 +349,10 @@ def show_note(username):
     following = pagination.items
     return render_template('user/collections.html', user=user, pagination=pagination, following=following)
 
-=======
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail)
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Upload.user_id == user.id)  # Filtering collections by the user
-        .order_by(Upload.upload_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE']  # Assume 'per_page' is set to 10, adjust as necessary
-    )
-    results = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
-
-@app.route('/user/<username>/followers')
-@login_required
-def show_follower(username):
-
 
 def show_follower(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
-<<<<<<< HEAD
     pagination = db.paginate(
         sa.select(User)
         .join(followers, followers.follower_id == User.id)
@@ -404,17 +364,6 @@ def show_follower(username):
     following = pagination.items
     return render_template('user/followers.html', user=user, pagination=pagination, following=following)
 
-=======
-    following_alias = aliased(User)
-
-    pagination = db.session.query(following_alias). \
-        join(followers, followers.c.follower_id == following_alias.id). \
-        filter(followers.c.followed_id == user.id). \
-        paginate(page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
-
-    follower = pagination.items
-    return render_template('user/followed.html', user=user, pagination=pagination, follower=follower)
->>>>>>> 737aec3080c5d46d1feee7d2ab201f3eb1dafcfa
 
 @app.before_request
 def before_request():
