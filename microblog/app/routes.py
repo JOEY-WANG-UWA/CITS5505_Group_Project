@@ -1,10 +1,10 @@
-from flask import render_template, flash, redirect, url_for,request
+from flask import render_template, flash, redirect, url_for
 from app import app
 from app.forms import LoginForm
 from flask_login import current_user, login_user
 import sqlalchemy as sa
 from app.models import User
-from sqlalchemy.orm import joinedload,aliased
+from sqlalchemy.orm import joinedload, aliased
 from flask_login import logout_user
 from flask import request, g
 from urllib.parse import urlsplit
@@ -13,9 +13,9 @@ from app import db
 from app.forms import RegistrationForm
 from datetime import datetime, timezone
 from app.forms import EditProfileForm
+# from app.forms import ProfileForm
 from app.forms import PostForm
 from app.forms import EmptyForm
-from app.models import Post, Collection, Favourite, followers
 from app.forms import ResetPasswordRequestForm
 from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
@@ -23,10 +23,17 @@ from app.forms import SearchForm
 from app.forms import MessageForm
 from app.models import Message
 from app.models import Notification
-from app.models import Upload
-from app.models import Upload_detail
-from app.models import Favourite
 from flask_babel import _, get_locale
+from app.forms import UploadForm
+from werkzeug.utils import secure_filename
+import os
+from app.models import Post, Collection, Favourite, followers
+from app.models import Upload, Upload_detail, Comment
+from collections import defaultdict
+from sqlalchemy import select, func, distinct
+from .forms import DescriptionForm
+from .forms import CommentForm
+from flask import jsonify
 
 
 @app.before_request
@@ -37,10 +44,94 @@ def before_request():
         g.search_form = SearchForm()
 
 
-@app.route('/', methods=['GET', 'POST'])
-def home():
-    details = Upload_detail.query.all()
-    return render_template("base.html", details=details)
+@ app.route('/')
+@ app.route('/gallery')
+def gallery():
+    uploads = Upload.query.all()
+    grouped_details = defaultdict(dict)
+
+    uploads_with_collection = db.session.query(
+        Upload.id,
+        Upload.title,
+        User.username,
+        Upload.description,
+        Comment.comment_content,
+        func.count(distinct(Collection.id)).label('collect_count'),
+        func.count(distinct(Comment.id)).label('comment_count')
+    ).select_from(Upload).join(User).outerjoin(Collection, Collection.upload_id == Upload.id).outerjoin(Comment, Comment.upload_id == Upload.id).group_by(Upload.id, Upload.title, User.username).all()
+
+    # for upload in uploads_with_collection:
+    # print(upload)
+
+    for upload_id, title, username, description, comment, collect_count, comment_count in uploads_with_collection:
+        grouped_details[upload_id] = {
+            'title': title,
+            'username': username,
+            'description': description,
+            'comment': comment,
+            'collect_count': collect_count,
+            'comment_count': comment_count,
+            'items': []
+        }
+    for upload in Upload.query.all():
+        for detail in upload.updetails:
+            grouped_details[upload.id]['items'].append(detail.upload_item)
+    print(grouped_details)
+    return render_template('main/gallery.html', grouped_details=grouped_details, uploads=uploads, uploads_with_collection=uploads_with_collection)
+
+
+if __name__ == '__main__':
+    app.run(debug=True)
+
+
+@app.route('/add_to_collection/<int:upload_id>', methods=['POST'])
+def add_to_collection(upload_id):
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Authentication required'}), 401
+
+    collection = Collection.query.filter_by(
+        upload_id=upload_id, user_id=current_user.id).first()
+    if collection:
+        db.session.delete(collection)
+        db.session.commit()
+        new_count = Collection.query.filter_by(upload_id=upload_id).count()
+        return jsonify({'success': True, 'newCount': new_count})
+    else:
+        new_collection = Collection(
+            upload_id=upload_id, user_id=current_user.id)
+        db.session.add(new_collection)
+        db.session.commit()
+        new_count = Collection.query.filter_by(upload_id=upload_id).count()
+        return jsonify({'success': True, 'newCount': new_count})
+
+# @app.route('/add_to_collection/<int:upload_id>', methods=['POST'])
+# def add_to_collection(upload_id):
+    new_collection = Collection(upload_id=upload_id, user_id=current_user.id)
+    db.session.add(new_collection)
+    db.session.commit()
+    return jsonify({'message': 'Successfully added to collection'})
+
+
+@app.route('/post_comment/<int:upload_id>', methods=['POST'])
+def post_comment(upload_id):
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'User not authenticated'}), 401
+
+    data = request.get_json()
+    comment_content = data.get('comment')
+
+    if not comment_content:
+        return jsonify({'success': False, 'message': 'Comment content is required'}), 400
+
+    new_comment = Comment(
+        upload_id=upload_id,
+        user_id=current_user.id,
+        comment_content=comment_content
+    )
+    db.session.add(new_comment)
+    db.session.commit()
+
+    return jsonify({'success': True, 'message': 'Comment posted', 'username': current_user.username})
 
 
 @app.route('/index', methods=['GET', 'POST'])
@@ -120,69 +211,58 @@ def register():
     return render_template('register.html', title='Register', form=form)
 
 
-@app.route('/user/<username>')
+@app.route('/user/<username>', methods=['GET', 'POST'])
 @login_required
 def user(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
+    # Fetch the user by username or return 404 if not found
+    user = db.session.query(User).filter_by(username=username).first_or_404()
+
     page = request.args.get('page', 1, type=int)
-    query = user.posts.select().order_by(Post.timestamp.desc())
-    posts = db.paginate(query, page=page,
-                        per_page=app.config['POSTS_PER_PAGE'],
-                        error_out=False)
-    next_url = url_for('user', username=user.username, page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('user', username=user.username, page=posts.prev_num) \
-        if posts.has_prev else None
-    form = EmptyForm()
-    return render_template('user.html', user=user, posts=posts.items,
-                           next_url=next_url, prev_url=prev_url, form=form)
+    per_page = app.config.get('POSTS_PER_PAGE', 10)
+    query = db.session.query(
+        Upload,
+        Upload_detail,
+        func.count(Collection.id).label('collection_count')
+    ).join(Upload_detail, Upload_detail.upload_id == Upload.id) \
+        .outerjoin(Collection, Collection.upload_id == Upload.id) \
+        .filter(Upload.user_id == user.id) \
+        .group_by(Upload.id, Upload_detail.id) \
+        .order_by(Upload.upload_time.desc())
+
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    results = pagination.items
+
+    return render_template('user.html', user=user, pagination=pagination, results=results)
 
 
 @app.route('/user/<username>/check_collections')
 @login_required
 def check_collections(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
-    page = request.args.get('page', 1, type=int)
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail, Collection)
-        .join(Collection, Collection.user_id == Upload.user_id)  # Linking collections to user
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Collection.user_id == user.id)  # Filtering collections by the user
-        .order_by(Collection.collect_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE'] # Assume 'per_page' is set to 10, adjust as necessary
-    )
+    # Fetch the user by username or return 404 if not found
+    user = db.session.query(User).filter_by(username=username).first_or_404()
 
+    # Pagination settings
+    page = request.args.get('page', 1, type=int)
+    per_page = app.config.get('POSTS_PER_PAGE', 10)
+
+    # Build the query to fetch uploads and their details where collections are linked to this user
+    query = db.session.query(
+        Upload,
+        Upload_detail,
+        func.count(Collection.id).label('collection_count')
+    ).join(Upload_detail, Upload_detail.upload_id == Upload.id) \
+        .outerjoin(Collection, Collection.upload_id == Upload.id) \
+        .filter(Collection.user_id == user.id) \
+        .group_by(Upload.id, Upload_detail.id) \
+        .order_by(Upload.upload_time.desc())
+
+    # Execute pagination on the query
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
     results = pagination.items
+
+    # Render the template with the collected data
     return render_template('user/collections.html', user=user, pagination=pagination, results=results)
 
-
-@app.route('/user/<username>/likes')
-@login_required
-def show_likes(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
-    page = request.args.get('page', 1, type=int)
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail, Favourite)
-        .join(Favourite, Favourite.user_id == Upload.user_id)  # Linking collections to user
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Favourite.user_id == user.id)  # Filtering collections by the user
-        .order_by(Favourite.favourite_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE']  # Assume 'per_page' is set to 10, adjust as necessary
-    )
-    results = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
 
 @app.route('/user/<username>/following')
 @login_required
@@ -200,26 +280,7 @@ def show_following(username):
     following = pagination.items
     return render_template('user/following.html', user=user, pagination=pagination, following=following)
 
-@app.route('/user/<username>/show_notes')
-@login_required
-def show_note(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
-    page = request.args.get('page', 1, type=int)
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail)
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Upload.user_id == user.id)  # Filtering collections by the user
-        .order_by(Upload.upload_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE']  # Assume 'per_page' is set to 10, adjust as necessary
-    )
-    results = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
+
 
 @app.route('/user/<username>/followers')
 @login_required
@@ -235,6 +296,13 @@ def show_follower(username):
 
     follower = pagination.items
     return render_template('user/followed.html', user=user, pagination=pagination, follower=follower)
+
+@app.before_request
+def before_request():
+    if current_user.is_authenticated:
+        current_user.last_seen = datetime.now(timezone.utc)
+        db.session.commit()
+
 
 @app.before_request
 def before_request():
@@ -279,7 +347,6 @@ def follow(username):
         return redirect(url_for('user', username=username))
     else:
         return redirect(url_for('index'))
-
 
 
 @app.route('/unfollow/<username>', methods=['POST'])
@@ -413,3 +480,41 @@ def view_details():
     # likes = Favourite.query.all()
     # Passing all data sets to the template
     return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
+
+@app.route('/upload', methods=['GET', 'POST'])
+@login_required
+def upload():
+    form = UploadForm()
+    if form.validate_on_submit():
+        try:
+            new_upload = Upload(
+                user_id=current_user.id,
+                title=form.title.data,
+                hashtag=form.hashtag.data,
+                description=form.description.data,
+                upload_time=datetime.now(timezone.utc)
+            )
+            db.session.add(new_upload)
+            db.session.flush()
+
+            files = request.files.getlist('file')
+            for file in files:
+                if file: 
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
+
+                    new_detail = Upload_detail(
+                        upload_id=new_upload.id,
+                        upload_item=filename,
+                    )
+                    db.session.add(new_detail)
+
+            db.session.commit()
+            flash('All files successfully uploaded as part of the same post!')
+            return redirect(url_for('index'))
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred: ' + str(e), 'error')
+            return redirect(url_for('upload'))
+    return render_template('upload.html', form=form)

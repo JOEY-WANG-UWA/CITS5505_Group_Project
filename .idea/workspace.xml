@@ -4,18 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="0da32499-c908-420c-9fde-6076c52d47a9" name="Changes" comment="This is the unfinished version of User page which has note, collection , likes, following, follower">
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.local.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.local.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/dataSources/24b5a429-2719-4cdb-ad1c-7de9746886ca.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/dataSources/24b5a429-2719-4cdb-ad1c-7de9746886ca.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app.db" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app.db" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/models.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/models.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/routes.py" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/routes.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/templates/User/collections.html" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/templates/User/collections.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/templates/User/followed.html" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/templates/User/followed.html" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/microblog/app/templates/User/following.html" beforeDir="false" afterPath="$PROJECT_DIR$/microblog/app/templates/User/following.html" afterDir="false" />
-    </list>
+    <list default="true" id="0da32499-c908-420c-9fde-6076c52d47a9" name="Changes" comment="This is the unfinished version of User page which has note, collection , likes, following, follower" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -69,9 +58,8 @@
   &quot;keyToString&quot;: {
     &quot;Python.config.executor&quot;: &quot;Debug&quot;,
     &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;test&quot;,
     &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
-    &quot;last_opened_file_path&quot;: &quot;C:/Users/yuxiao/Desktop/24S1/5505web_dev/CITS5505_Group_Project&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/yuxiao/Desktop/24S1/5505web_dev/group_project/CITS5505_Group_Project&quot;,
     &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
     &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
     &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
@@ -112,6 +100,10 @@
       <workItem from="1715502917760" duration="15000" />
       <workItem from="1715502978458" duration="3058000" />
       <workItem from="1715506130513" duration="5841000" />
+      <workItem from="1715575208061" duration="4247000" />
+      <workItem from="1715588872849" duration="250000" />
+      <workItem from="1715590184614" duration="10483000" />
+      <workItem from="1715608482912" duration="5540000" />
     </task>
     <task id="LOCAL-00001" summary="user avatar and collection changed, now we can get default image and update photos">
       <option name="closed" value="true" />
@@ -176,10 +168,10 @@
   <component name="XDebuggerManager">
     <breakpoint-manager>
       <breakpoints>
-        <line-breakpoint enabled="true" type="jinja2-line">
-          <url>file://$PROJECT_DIR$/microblog/app/templates/user1.html</url>
-          <line>10</line>
-          <option name="timeStamp" value="1" />
+        <line-breakpoint enabled="true" suspend="THREAD" type="python-line">
+          <url>file://$PROJECT_DIR$/microblog/app/routes.py</url>
+          <line>216</line>
+          <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

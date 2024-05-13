@@ -1,0 +1,91 @@
+
+/*
+Porfile
+*/
+.profile-pic {
+    border-radius: 50%;
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+}
+
+.profile-info {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    margin-left: 20px;
+    font-size: 14px;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    margin-top: 20px;
+}
+
+.nav-tabs {
+    display: flex;
+    justify-content: center;
+}
+
+.tab-content {
+    margin-top: 20px;
+}
+
+.empty-content {
+    text-align: center;
+    margin-top: 50px;
+    font-size: 1.2em;
+    color: gray;
+}
+
+/*
+The mainphoto page
+ */
+/* list item */
+.photo-card {
+    float: left;
+    width: 33.333%;
+    padding: 0.5rem 0.5rem 0 0.5rem;
+    border: 0;
+}
+
+.photo-card .card-body {
+    padding: 5px;
+}
+
+.user-card {
+    float: left;
+    width: 20%;
+    max-height: 180px;
+    padding: 1rem;
+    margin-bottom: 2rem;
+    border: 0;
+}
+
+.card-thumbnail {
+    position: relative;
+    width: auto;
+    height: 20em;
+    overflow: hidden;
+}
+
+.card-thumbnail:hover {
+    border: 5px solid transparent;
+}
+
+.card-thumbnail img {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    height: 100%;
+    width: auto;
+    -webkit-transform: translate(-50%, -50%);
+    -ms-transform: translate(-50%, -50%);
+    transform: translate(-50%, -50%);
+}
+
+.card-thumbnail img.portrait {
+    width: 100%;
+    height: auto;
+}

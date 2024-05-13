@@ -121,3 +121,4 @@ class DescriptionForm(FlaskForm):
 class CommentForm(FlaskForm):
     body = TextAreaField('', validators=[DataRequired()])
     submit = SubmitField()
+
