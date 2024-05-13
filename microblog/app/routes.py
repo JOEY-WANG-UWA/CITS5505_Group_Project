@@ -300,7 +300,7 @@ def show_following(username):
     page = request.args.get('page', 1, type=int)
     pagination = db.paginate(
         sa.select(User)
-        .join(Follow, Follow.followed_id == User.id)
+        .join(followers, followers.followed_id == User.id)
         .filter_by(
             follower_id=user.id),
         page=page,
@@ -312,7 +312,7 @@ def show_following(username):
 
 @app.route('/user/<username>/following')
 @login_required
-def show_notes(username):
+def show_note(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
     pagination = db.paginate(
@@ -333,11 +333,14 @@ def show_notes(username):
 @app.route('/user/<username>/followers')
 @login_required
 def show_follower(username):
+
+
+def show_follower(username):
     user = db.first_or_404(sa.select(User).filter_by(username=username))
     page = request.args.get('page', 1, type=int)
     pagination = db.paginate(
         sa.select(User)
-        .join(Follow, Follow.follower_id == User.id)
+        .join(followers, followers.follower_id == User.id)
         .filter_by(
             followed_id=user.id),
         page=page,
@@ -523,40 +526,3 @@ def view_details():
     # likes = Favourite.query.all()
     # Passing all data sets to the template
     return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
-
-
-@app.route('/upload', methods=['GET', 'POST'])
-def upload():
-    form = UploadForm()
-    if form.validate_on_submit():
-        files = request.files.getlist('photos')
-        titles = request.form.getlist('titles')
-        descriptions = request.form.getlist('descriptions')
-        hashtags = request.form.getlist('hashtags')
-
-        for i, file in enumerate(files):
-            if file:
-                filename = secure_filename(file.filename)
-                file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-                file.save(file_path)
-
-                new_upload = Upload(
-                    user_id=1,
-                    title=titles[i],
-                    hashtag=hashtags[i],
-                    upload_time=datetime.utcnow()
-                )
-                db.session.add(new_upload)
-                db.session.commit()
-
-                new_detail = Upload_detail(
-                    upload_id=new_upload.id,
-                    upload_item=filename,
-                    description=descriptions[i]
-                )
-                db.session.add(new_detail)
-                db.session.commit()
-
-        flash('Images and details successfully uploaded')
-        return redirect('/success')
-    return render_template('upload.html', form=form)
