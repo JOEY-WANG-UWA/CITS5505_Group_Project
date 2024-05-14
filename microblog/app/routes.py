@@ -75,7 +75,7 @@ def gallery():
     for upload in Upload.query.all():
         for detail in upload.updetails:
             grouped_details[upload.id]['items'].append(detail.upload_item)
-    print(grouped_details)
+    print(grouped_details) ##？？？？？？？？？？？
     return render_template('main/gallery.html', grouped_details=grouped_details, uploads=uploads, uploads_with_collection=uploads_with_collection)
 
 
@@ -547,11 +547,11 @@ def upload():
 
                 db.session.commit()
                 flash('All files successfully uploaded as part of the same post!')
-                return jsonify({"message": "Upload successful"})
+                return redirect(url_for('gallery'))
             except Exception as e:
                 db.session.rollback()
                 flash('An error occurred: ' + str(e), 'error')
-                return jsonify({"error": str(e)}), 400
+                return redirect(url_for('upload'))
         else:
             return jsonify({"errors": form.errors}), 400
     return render_template('upload.html', form=form)
