@@ -16,3 +16,4 @@ class Config:
     DROPZONE_MAX_FILE_SIZE = 20
     DROPZONE_PARALLEL_UPLOADS = 9
     UPLOAD_FOLDER = os.path.join(basedir, 'app', 'static', 'img')
+    AVATAR_UPLOAD_FOLDER = os.path.join(basedir, 'app', 'static', 'img', 'avatar')

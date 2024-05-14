@@ -35,6 +35,9 @@ from .forms import DescriptionForm
 from .forms import CommentForm
 from flask import jsonify
 import uuid
+from app.models import User
+from app.forms import EditProfileForm
+import uuid
 
 
 @app.before_request
@@ -391,7 +394,6 @@ def before_request():
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
 
-
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
@@ -399,15 +401,21 @@ def edit_profile():
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.about_me = form.about_me.data
+        
+        if form.avatar.data:
+            avatar_file = form.avatar.data
+            filename = secure_filename(avatar_file.filename)
+            unique_filename = str(uuid.uuid4()) + "_" + filename
+            avatar_path = os.path.join(app.config['AVATAR_UPLOAD_FOLDER'], unique_filename)
+            avatar_file.save(avatar_path)
+            current_user.avatar = unique_filename
         db.session.commit()
         flash('Your changes have been saved.')
         return redirect(url_for('edit_profile'))
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
-    return render_template('edit_profile.html', title='Edit Profile',
-                           form=form)
-
+    return render_template('edit_profile.html', title='Edit Profile', form=form)
 
 @app.route('/follow/<username>', methods=['POST'])
 @login_required
@@ -567,20 +575,19 @@ def view_details():
 @login_required
 def upload():
     form = UploadForm()
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            try:
-                # Create a new upload entry
-                new_upload = Upload(
-                    user_id=current_user.id,
-                    title=form.title.data,
-                    hashtag=form.hashtag.data,
-                    description=form.description.data,
-                    upload_time=datetime.now(timezone.utc)
-                )
-                db.session.add(new_upload)
-                db.session.flush()
+    if form.validate_on_submit():
+        try:
+            new_upload = Upload(
+                user_id=current_user.id,
+                title=form.title.data,
+                hashtag=form.hashtag.data,
+                description=form.description.data,
+                upload_time=datetime.now(timezone.utc)
+            )
+            db.session.add(new_upload)
+            db.session.flush()
 
+<<<<<<< HEAD
                 # Process each file in the request
                 files = request.files.getlist('file')
                 for file in files:
@@ -590,21 +597,26 @@ def upload():
                         file_path = os.path.join(
                             app.config['UPLOAD_FOLDER'], unique_filename)
                         file.save(file_path)
+=======
+            files = request.files.getlist('file')
+            for file in files:
+                if file: 
+                    filename = secure_filename(file.filename)
+                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    file.save(file_path)
+>>>>>>> a57b3d8332dd684e74b4da0263b30310455da6ff
 
-                        # Create a new upload detail entry
-                        new_detail = Upload_detail(
-                            upload_id=new_upload.id,
-                            upload_item=unique_filename,
-                        )
-                        db.session.add(new_detail)
+                    new_detail = Upload_detail(
+                        upload_id=new_upload.id,
+                        upload_item=filename,
+                    )
+                    db.session.add(new_detail)
 
-                db.session.commit()
-                flash('All files successfully uploaded as part of the same post!')
-                return redirect(url_for('gallery'))
-            except Exception as e:
-                db.session.rollback()
-                flash('An error occurred: ' + str(e), 'error')
-                return redirect(url_for('upload'))
-        else:
-            return jsonify({"errors": form.errors}), 400
+            db.session.commit()
+            flash('All files successfully uploaded as part of the same post!')
+            return redirect(url_for('gallery'))
+        except Exception as e:
+            db.session.rollback()
+            flash('An error occurred: ' + str(e), 'error')
+            return redirect(url_for('upload'))
     return render_template('upload.html', form=form)
