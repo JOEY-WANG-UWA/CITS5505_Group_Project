@@ -209,71 +209,124 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
+def fetch_data(user_id, for_collections=False):
+    # Query to get the counts of collections and comments for each upload
+    counts_query = db.session.query(
+        Upload.id.label('upload_id'),
+        func.count(distinct(Collection.id)).label('collect_count'),
+        func.count(distinct(Comment.id)).label('comment_count')
+    ).outerjoin(Collection, Collection.upload_id == Upload.id)\
+        .outerjoin(Comment, Comment.upload_id == Upload.id)\
+        .group_by(Upload.id).subquery()
 
-@app.route('/user/<username>')
+    # Base query to get the upload details and filtered by user_id
+    base_query = db.session.query(
+        Upload.id,
+        Upload.title,
+        User.username,
+        User.avatar,
+        Upload.description,
+        counts_query.c.collect_count,
+        counts_query.c.comment_count
+    ).select_from(Upload).join(User)\
+        .outerjoin(counts_query, counts_query.c.upload_id == Upload.id)
+
+    if for_collections:
+        base_query = base_query.filter(Collection.user_id == user_id).join(Collection, Collection.upload_id == Upload.id)
+    else:
+        base_query = base_query.filter(Upload.user_id == user_id)
+
+    uploads_with_collection = base_query.all()
+
+    grouped_details = defaultdict(dict)
+    for upload_id, title, username, avatar, description, collect_count, comment_count in uploads_with_collection:
+        grouped_details[upload_id] = {
+            'upload_id': upload_id,
+            'title': title,
+            'username': username,
+            'avatar': avatar,
+            'description': description,
+            'collect_count': collect_count,
+            'comment_count': comment_count,
+            'items': []
+        }
+
+    if for_collections:
+        uploads = db.session.query(Upload).join(Collection, Collection.upload_id == Upload.id).filter(Collection.user_id == user_id).all()
+    else:
+        uploads = db.session.query(Upload).filter_by(user_id=user_id).all()
+
+    for upload in uploads:
+        for detail in upload.updetails:
+            grouped_details[upload.id]['items'].append(detail.upload_item)
+
+    return list(grouped_details.values())
+
+
+
+@app.route('/user/<username>', methods=['GET', 'POST'])
 @login_required
 def user(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
+    user = db.session.query(User).filter_by(username=username).first_or_404()
+
     page = request.args.get('page', 1, type=int)
-    query = user.posts.select().order_by(Post.timestamp.desc())
-    posts = db.paginate(query, page=page,
-                        per_page=app.config['POSTS_PER_PAGE'],
-                        error_out=False)
-    next_url = url_for('user', username=user.username, page=posts.next_num) \
-        if posts.has_next else None
-    prev_url = url_for('user', username=user.username, page=posts.prev_num) \
-        if posts.has_prev else None
+    per_page = app.config.get('POSTS_PER_PAGE', 10)
+
+    # Fetch data using the helper function
+    grouped_details = fetch_data(user.id)
+
+    # Pagination logic
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_items = grouped_details[start:end]
+    total = len(grouped_details)
+    pagination = Pagination(page=page, per_page=per_page, total=total)
+
+    comments_with_user = db.session.query(
+        Comment.id, Comment.upload_id, Comment.user_id, Comment.comment_content, Comment.comment_time, User.username
+    ).join(User, User.id == Comment.user_id).all()
+
+
     form = EmptyForm()
-    return render_template('user.html', user=user, posts=posts.items,
-                           next_url=next_url, prev_url=prev_url, form=form)
+
+    return render_template('user.html', user=user, pagination=pagination, form=form, results=paginated_items,
+                           comments_with_user=comments_with_user)
 
 
+@app.template_filter()
+def to_int(value):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return 0
 
 @app.route('/user/<username>/check_collections')
 @login_required
 def check_collections(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
+    # Fetch the user by username or return 404 if not found
+    user = db.session.query(User).filter_by(username=username).first_or_404()
+
+    # Pagination settings
     page = request.args.get('page', 1, type=int)
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail, Collection)
-        .join(Collection, Collection.user_id == Upload.user_id)  # Linking collections to user
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Collection.user_id == user.id)  # Filtering collections by the user
-        .order_by(Collection.collect_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE'] # Assume 'per_page' is set to 10, adjust as necessary
-    )
+    per_page = app.config.get('POSTS_PER_PAGE', 10)
 
-    results = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
+    # Fetch data for collections using the helper function
+    grouped_details = fetch_data(user.id, for_collections=True)
 
+    # Pagination logic
+    start = (page - 1) * per_page
+    end = start + per_page
+    paginated_items = grouped_details[start:end]
+    total = len(grouped_details)
+    pagination = Pagination(page=page, per_page=per_page, total=total)
 
-@app.route('/user/<username>/likes')
-@login_required
-def show_likes(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
-    page = request.args.get('page', 1, type=int)
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail, Favourite)
-        .join(Favourite, Favourite.user_id == Upload.user_id)  # Linking collections to user
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Favourite.user_id == user.id)  # Filtering collections by the user
-        .order_by(Favourite.favourite_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE']  # Assume 'per_page' is set to 10, adjust as necessary
-    )
-    results = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
+    comments_with_user = db.session.query(
+        Comment.id, Comment.upload_id, Comment.user_id, Comment.comment_content, Comment.comment_time, User.username
+    ).join(User, User.id == Comment.user_id).all()
+    form = EmptyForm()
+
+    return render_template('User/collections.html', user=user, pagination=pagination, results=paginated_items, form = form,comments_with_user=comments_with_user)
+
 
 @app.route('/user/<username>/following')
 @login_required
@@ -289,28 +342,10 @@ def show_following(username):
         paginate(page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
 
     following = pagination.items
-    return render_template('user/following.html', user=user, pagination=pagination, following=following)
+    form=EmptyForm()
+    return render_template('user/following.html', user=user, form=form, pagination=pagination, following=following)
 
-@app.route('/user/<username>/show_notes')
-@login_required
-def show_note(username):
-    user = db.first_or_404(sa.select(User).where(User.username == username))
-    page = request.args.get('page', 1, type=int)
-    # Adjusted query to reflect the relationships between Upload, Upload_detail, and Collection
-    query = (
-        sa.select(Upload, Upload_detail)
-        .join(Upload_detail, Upload_detail.upload_id == Upload.id)  # Linking uploads to their details
-        .filter(Upload.user_id == user.id)  # Filtering collections by the user
-        .order_by(Upload.upload_time.desc())  # Ordering by the collection time
-    )
-    # Pagination setup
-    pagination = db.paginate(
-        query,
-        page=page,
-        per_page=app.config['POSTS_PER_PAGE']  # Assume 'per_page' is set to 10, adjust as necessary
-    )
-    results = pagination.items
-    return render_template('user/collections.html', user=user, pagination=pagination, results=results)
+
 
 @app.route('/user/<username>/followers')
 @login_required
@@ -325,7 +360,9 @@ def show_follower(username):
         paginate(page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
 
     follower = pagination.items
-    return render_template('user/followed.html', user=user, pagination=pagination, follower=follower)
+    form = EmptyForm()
+    return render_template('user/followed.html', user=user, form=form,pagination=pagination, follower=follower)
+
 
 @app.before_request
 def before_request():
