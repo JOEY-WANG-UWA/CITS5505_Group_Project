@@ -10,6 +10,7 @@ from flask import request, g
 from urllib.parse import urlsplit
 from flask_login import login_required
 from app import db
+from flask_paginate import Pagination, get_page_parameter
 from app.forms import RegistrationForm
 from datetime import datetime, timezone
 from app.forms import EditProfileForm
@@ -35,6 +36,7 @@ from .forms import CommentForm
 from flask import jsonify
 import uuid
 
+
 @app.before_request
 def before_request():
     if current_user.is_authenticated:
@@ -43,44 +45,53 @@ def before_request():
         g.search_form = SearchForm()
 
 
-@ app.route('/')
-@ app.route('/gallery')
-def gallery():
-    uploads = Upload.query.all()
-    grouped_details = defaultdict(dict)
-
+def fetch_data_gallery():
+    # Fetch all necessary data from the database
     uploads_with_collection = db.session.query(
         Upload.id,
         Upload.title,
         User.username,
+        User.avatar,
         Upload.description,
-        Comment.comment_content,
         func.count(distinct(Collection.id)).label('collect_count'),
         func.count(distinct(Comment.id)).label('comment_count')
-    ).select_from(Upload).join(User).outerjoin(Collection, Collection.upload_id == Upload.id).outerjoin(Comment, Comment.upload_id == Upload.id).group_by(Upload.id, Upload.title, User.username).all()
+    ).select_from(Upload).join(User).outerjoin(Collection, Collection.upload_id == Upload.id)\
+        .outerjoin(Comment, Comment.upload_id == Upload.id)\
+        .group_by(Upload.id, Upload.title, User.username)\
+        .all()
 
-    # for upload in uploads_with_collection:
-    # print(upload)
-
-    for upload_id, title, username, description, comment, collect_count, comment_count in uploads_with_collection:
+    grouped_details = defaultdict(dict)
+    for upload_id, title, username, avatar, description, collect_count, comment_count in uploads_with_collection:
         grouped_details[upload_id] = {
             'title': title,
             'username': username,
+            'avatar': avatar,
             'description': description,
-            'comment': comment,
             'collect_count': collect_count,
             'comment_count': comment_count,
             'items': []
         }
-    for upload in Upload.query.all():
+
+    uploads = Upload.query.all()
+    for upload in uploads:
         for detail in upload.updetails:
             grouped_details[upload.id]['items'].append(detail.upload_item)
-    print(grouped_details) ##？？？？？？？？？？？
-    return render_template('main/gallery.html', grouped_details=grouped_details, uploads=uploads, uploads_with_collection=uploads_with_collection)
+
+    return grouped_details
 
 
-if __name__ == '__main__':
-    app.run(debug=True)
+@ app.route('/')
+@ app.route('/gallery')
+def gallery():
+    grouped_details = fetch_data_gallery()
+    comments_with_user = db.session.query(
+        Upload.id,
+        Comment.comment_content,
+        Comment.comment_time,
+        User.username
+    ).select_from(Comment).join(User).outerjoin(Upload, Upload.id == Comment.upload_id).all()
+
+    return render_template('main/gallery_view.html', grouped_details=grouped_details, comments_with_user=comments_with_user)
 
 
 @app.route('/add_to_collection/<int:upload_id>', methods=['POST'])
@@ -209,6 +220,7 @@ def register():
         return redirect(url_for('login'))
     return render_template('register.html', title='Register', form=form)
 
+
 def fetch_data(user_id, for_collections=False):
     # Query to get the counts of collections and comments for each upload
     counts_query = db.session.query(
@@ -232,7 +244,8 @@ def fetch_data(user_id, for_collections=False):
         .outerjoin(counts_query, counts_query.c.upload_id == Upload.id)
 
     if for_collections:
-        base_query = base_query.filter(Collection.user_id == user_id).join(Collection, Collection.upload_id == Upload.id)
+        base_query = base_query.filter(Collection.user_id == user_id).join(
+            Collection, Collection.upload_id == Upload.id)
     else:
         base_query = base_query.filter(Upload.user_id == user_id)
 
@@ -252,7 +265,8 @@ def fetch_data(user_id, for_collections=False):
         }
 
     if for_collections:
-        uploads = db.session.query(Upload).join(Collection, Collection.upload_id == Upload.id).filter(Collection.user_id == user_id).all()
+        uploads = db.session.query(Upload).join(
+            Collection, Collection.upload_id == Upload.id).filter(Collection.user_id == user_id).all()
     else:
         uploads = db.session.query(Upload).filter_by(user_id=user_id).all()
 
@@ -261,7 +275,6 @@ def fetch_data(user_id, for_collections=False):
             grouped_details[upload.id]['items'].append(detail.upload_item)
 
     return list(grouped_details.values())
-
 
 
 @app.route('/user/<username>', methods=['GET', 'POST'])
@@ -286,7 +299,6 @@ def user(username):
         Comment.id, Comment.upload_id, Comment.user_id, Comment.comment_content, Comment.comment_time, User.username
     ).join(User, User.id == Comment.user_id).all()
 
-
     form = EmptyForm()
 
     return render_template('user.html', user=user, pagination=pagination, form=form, results=paginated_items,
@@ -299,6 +311,7 @@ def to_int(value):
         return int(value)
     except (TypeError, ValueError):
         return 0
+
 
 @app.route('/user/<username>/check_collections')
 @login_required
@@ -325,7 +338,7 @@ def check_collections(username):
     ).join(User, User.id == Comment.user_id).all()
     form = EmptyForm()
 
-    return render_template('User/collections.html', user=user, pagination=pagination, results=paginated_items, form = form,comments_with_user=comments_with_user)
+    return render_template('User/collections.html', user=user, pagination=pagination, results=paginated_items, form=form, comments_with_user=comments_with_user)
 
 
 @app.route('/user/<username>/following')
@@ -339,12 +352,12 @@ def show_following(username):
     pagination = db.session.query(followed_alias). \
         join(followers, followers.c.followed_id == followed_alias.id). \
         filter(followers.c.follower_id == user.id). \
-        paginate(page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+        paginate(
+            page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
 
     following = pagination.items
-    form=EmptyForm()
+    form = EmptyForm()
     return render_template('user/following.html', user=user, form=form, pagination=pagination, following=following)
-
 
 
 @app.route('/user/<username>/followers')
@@ -357,11 +370,12 @@ def show_follower(username):
     pagination = db.session.query(following_alias). \
         join(followers, followers.c.follower_id == following_alias.id). \
         filter(followers.c.followed_id == user.id). \
-        paginate(page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
+        paginate(
+            page=page, per_page=app.config['POSTS_PER_PAGE'], error_out=False)
 
     follower = pagination.items
     form = EmptyForm()
-    return render_template('user/followed.html', user=user, form=form,pagination=pagination, follower=follower)
+    return render_template('user/followed.html', user=user, form=form, pagination=pagination, follower=follower)
 
 
 @app.before_request
@@ -548,6 +562,7 @@ def view_details():
     # Passing all data sets to the template
     return render_template('view_details.html', details=details, uploads=uploads, likes=likes)
 
+
 @app.route('/upload', methods=['GET', 'POST'])
 @login_required
 def upload():
@@ -572,7 +587,8 @@ def upload():
                     if file:
                         filename = secure_filename(file.filename)
                         unique_filename = str(uuid.uuid4()) + "_" + filename
-                        file_path = os.path.join(app.config['UPLOAD_FOLDER'], unique_filename)
+                        file_path = os.path.join(
+                            app.config['UPLOAD_FOLDER'], unique_filename)
                         file.save(file_path)
 
                         # Create a new upload detail entry
