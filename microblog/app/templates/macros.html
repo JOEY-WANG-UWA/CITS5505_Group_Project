@@ -1,0 +1,83 @@
+{% macro render_modal(upload_id, details,comments_with_user) %}
+<!-- Modal for viewing images or videos -->
+<div class="modal fade" id="mediaModal{{ upload_id }}" tabindex="-1" role="dialog"
+    aria-labelledby="mediaModalLabel{{ upload_id }}" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <a href="{{ url_for('user', username=details.username) }}" style="display: inline-block;">
+                    <img src="{{ url_for('static', filename='img/avatar/' ~ details.avatar) }}"
+                        alt="{{ details.username }}'s profile picture" class="img-fluid rounded-circle mr-2"
+                        style="width: 50px; height: 50px;">
+                    <p class="creative-text">{{ details.username }}</p>
+                </a>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <!-- Carousel to display multiple images -->
+                {% if details.items %}
+                <div id="carouselExampleIndicators{{ upload_id }}" class="carousel slide" data-ride="carousel">
+                    <div class="carousel-inner">
+                        {% for filename in details['items'] %}
+                        <div class="carousel-item {{ 'active' if loop.first else '' }}">
+                            <img src="{{ url_for('static', filename='img/' + filename) }}" class="d-block w-100"
+                                alt="{{ filename }}">
+                        </div>
+                        {% endfor %}
+                    </div>
+                    <!-- Carousel controls -->
+                    {% if details['items']|length > 1 %}
+                    <a class="carousel-control-prev" href="#carouselExampleIndicators{{ upload_id }}" role="button"
+                        data-slide="prev">
+                        <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                    <a class="carousel-control-next" href="#carouselExampleIndicators{{ upload_id }}" role="button"
+                        data-slide="next">
+                        <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                        <span class="sr-only">Next</span>
+                    </a>
+                    {% endif %}
+                </div>
+                {% endif %}
+                <h5 class="modal-title" id="mediaModalLabel{{ upload_id }}">{{ details.title }}</h5>
+                <p class="text-muted">{{ details.description }}</p>
+                <!-- for collection -->
+                <div class="collect-content">
+                    <i class="far fa-heart like-icon-{{ upload_id }} like-button" style="color: red;"
+                        data-upload-id="{{ upload_id }}"></i>
+                    <span class="like-count-{{ upload_id }}">{{ details.collect_count }}</span>
+                </div>
+                <div class="comments-container mt-4">
+                    <div class="comment-section" id="comment-section-{{ upload_id }}">
+                        <!-- Input for new comments -->
+                        <div class="comment-input-area">
+                            <input type="text" name="comment" id="comment-input-{{ upload_id }}"
+                                placeholder="Write a comment...">
+                            <button onclick="submitComment({{ upload_id }})">Submit</button>
+                        </div>
+                        <!-- Display existing comments -->
+
+                        <div class="comments">
+                            {% for comment in comments_with_user %}
+                            {% if comment.id|to_int == upload_id|to_int %}
+                            <div class="comment">
+                                <strong>{{ comment.username }}</strong>:</span>{{
+                                comment.comment_content}}</span>
+                                <small>{{ comment.comment_time.strftime('%Y-%m-%d %H:%M:%S')
+                                    }}</small>
+                            </div>
+
+
+                            {% endif %}
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endmacro %}
