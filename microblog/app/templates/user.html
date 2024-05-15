@@ -1,41 +1,72 @@
-{% extends "base.html" %}
-
+{% from 'macros.html' import render_modal1 %}
 {% block content %}
-    <table>
-        <tr valign="top">
-            <td><img src="{{ user.avatar(128) }}"></td>
-            <td>
-		    <h1>User: {{ user.username }}</h1>
-		    {% if user.about_me %}<p>{{ user.about_me }}</p>{% endif %}
-                    {% if user.last_seen %}<p>Last seen on: {{ user.last_seen }}</p>{% endif %}
-		    {% if user == current_user %}
-                    <p><a href="{{ url_for('edit_profile') }}">Edit your profile</a></p>
-                    	{% elif not current_user.is_following(user) %}
-        		<p>
-            			<form action="{{ url_for('follow', username=user.username) }}" method="post">
-                		{{ form.hidden_tag() }}
-                		{{ form.submit(value='Follow') }}
-            			</form>
-        		</p>
-        		{% else %}
-        		<p>
-            			<form action="{{ url_for('unfollow', username=user.username) }}" method="post">
-                		{{ form.hidden_tag() }}
-                		{{ form.submit(value='Unfollow') }}
-            			</form>
-        		</p>
-        	{% endif %}
-	    </td>
-        </tr>
-    </table>
-    <hr>
-    {% for post in posts %}
-    	{% include '_post.html' %}
-    {% endfor %}
-    {% if prev_url %}
-    <a href="{{ prev_url }}">Newer posts</a>
-    {% endif %}
-    {% if next_url %}
-    <a href="{{ next_url }}">Older posts</a>
-    {% endif %}
+{% include 'user1.html' %}
+<!-- Navigation Tabs -->
+<div class="row mt-4">
+    <div class="col-12">
+        <ul class="nav nav-tabs justify-content-center">
+            <li class="nav-item">
+                <a class="nav-link active" href="{{ url_for('user', username=user.username) }}">
+                    Photos <span class="badge badge-light">{{ user.photos_count }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('check_collections', username=user.username) }}">
+                    Collections <span class="badge badge-light">{{ user.collections_count }}</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('show_following', username=user.username) }}">
+                    Following
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link" href="{{ url_for('show_follower', username=user.username) }}">
+                    Followers
+                </a>
+            </li>
+        </ul>
+    </div>
+</div>
+
+<div class="container">
+    <div class="row">
+        {% if results %}
+        {% for item in results %}
+        <div class="col-md-4">
+            <div class="note-card">
+                <div class="card">
+                    <img class="card-img-top" src="{{ url_for('static', filename='img/' ~ item['items'][0]) }}"
+                        alt="Card image cap" data-toggle="modal" data-target="#mediaModal{{ item['upload_id'] }}">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ item['title'] }}</h5>
+                        <div class="card-footer d-flex align-items-center justify-content-between">
+                            <div class="d-flex align-items-center">
+                                <img src="{{ url_for('static', filename='img/avatar/' ~ user.avatar) }}"
+                                    alt="{{ user.username }}'s avatar" class="img-fluid rounded-circle mr-2"
+                                    style="width: 50px; height: 50px;">
+                                <small class="text-muted mr-2">{{ user.username }}</small>
+                            </div>
+                            <div class="d-flex align-items-center">
+                                <i class="fas fa-heart" style="color: red; margin-right: 5px;"></i>
+                                <small class="text-muted mr-2">{{ item['collect_count'] }}</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {{ render_modal1(item['upload_id'], item, comments_with_user) }}
+        {% endfor %}
+        {% else %}
+        <p>No photos found.</p>
+        {% endif %}
+    </div>
+    <!-- Pagination -->
+    <div class="row">
+        <div class="col-12">
+            {{ pagination.links }}
+        </div>
+    </div>
+</div>
 {% endblock %}
