@@ -43,7 +43,9 @@ class User(UserMixin, db.Model):
 
     posts: so.WriteOnlyMapped['Post'] = so.relationship(
         back_populates='author')
-    avatar: so.Mapped[str] = so.mapped_column(sa.String(120), index=True)
+
+    avatar: so.Mapped[str] = so.mapped_column(
+        sa.String(120), index=True, default='default.webp')  # Set default avatar
     about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
     last_seen: so.Mapped[Optional[datetime]] = so.mapped_column(
         default=lambda: datetime.now(timezone.utc))
@@ -57,12 +59,6 @@ class User(UserMixin, db.Model):
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)
-
-    def avatar(self, size=128):
-        if self.avatar:
-            return self.avatar
-        digest = md5(self.email.lower().encode('utf-8')).hexdigest()
-        return f'https://www.gravatar.com/avatar/{digest}?d=identicon&s={size}'
 
     following: so.WriteOnlyMapped['User'] = so.relationship(
         secondary=followers, primaryjoin=(followers.c.follower_id == id),
@@ -146,7 +142,9 @@ class User(UserMixin, db.Model):
             return
         return db.session.get(User, id)
 
-    uploads: so.WriteOnlyMapped['Upload'] = so.relationship('Upload', back_populates='user') ##
+    uploads: so.WriteOnlyMapped['Upload'] = so.relationship(
+        'Upload', back_populates='user')
+
 
 class SearchableMixin(object):
     @classmethod
@@ -262,12 +260,14 @@ class Upload(db.Model):
         'Upload_detail', backref='uploads', lazy='dynamic')
     collections = db.relationship(
         'Collection', backref='uploads', lazy='dynamic')
-    
-    user: so.Mapped['User'] = so.relationship('User', back_populates='uploads') ##
-    details: so.Mapped['Upload_detail'] = so.relationship('Upload_detail', back_populates='upload') ##
-    
-    def __repr__(self):##
-        return '<Upload title: "{}">'.format(self.title)##
+
+    user: so.Mapped['User'] = so.relationship('User', back_populates='uploads')
+    details: so.Mapped['Upload_detail'] = so.relationship(
+        'Upload_detail', back_populates='upload')
+
+    def __repr__(self):
+        return '<Upload title: "{}">'.format(self.title)
+
 
 class Upload_detail(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
@@ -275,10 +275,12 @@ class Upload_detail(db.Model):
                                                  index=True)
     upload_item: so.Mapped[str] = so.mapped_column(sa.String(140))
 
-    upload: so.Mapped['Upload'] = so.relationship('Upload', back_populates='details') ##
-    
-    def __repr__(self):##
-        return '<Upload item: "{}">'.format(self.upload_item) ##
+    upload: so.Mapped['Upload'] = so.relationship(
+        'Upload', back_populates='details')
+
+    def __repr__(self):
+        return '<Upload item: "{}">'.format(self.upload_item)
+
 
 class Favourite(db.Model):
     id: so.Mapped[int] = so.mapped_column(primary_key=True)
