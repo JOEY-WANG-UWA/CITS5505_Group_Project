@@ -108,21 +108,14 @@ def add_to_collection(upload_id):
         db.session.delete(collection)
         db.session.commit()
         new_count = Collection.query.filter_by(upload_id=upload_id).count()
-        return jsonify({'success': True, 'newCount': new_count})
+        return jsonify({'success': True, 'newCount': new_count, 'liked': False})
     else:
         new_collection = Collection(
             upload_id=upload_id, user_id=current_user.id)
         db.session.add(new_collection)
         db.session.commit()
         new_count = Collection.query.filter_by(upload_id=upload_id).count()
-        return jsonify({'success': True, 'newCount': new_count})
-
-# @app.route('/add_to_collection/<int:upload_id>', methods=['POST'])
-# def add_to_collection(upload_id):
-    new_collection = Collection(upload_id=upload_id, user_id=current_user.id)
-    db.session.add(new_collection)
-    db.session.commit()
-    return jsonify({'message': 'Successfully added to collection'})
+        return jsonify({'success': True, 'newCount': new_count, 'liked': True})
 
 
 @app.route('/post_comment/<int:upload_id>', methods=['POST'])
@@ -143,8 +136,8 @@ def post_comment(upload_id):
     )
     db.session.add(new_comment)
     db.session.commit()
-
-    return jsonify({'success': True, 'message': 'Comment posted', 'username': current_user.username})
+    new_count = Comment.query.filter_by(upload_id=upload_id).count()
+    return jsonify({'success': True, 'newCount': new_count, 'message': 'Comment posted', 'username': current_user.username})
 
 
 @app.route('/index', methods=['GET', 'POST'])
@@ -298,9 +291,16 @@ def user(username):
     total = len(grouped_details)
     pagination = Pagination(page=page, per_page=per_page, total=total)
 
+    # comments_with_user = db.session.query(
+    #    Comment.id, Comment.upload_id, Comment.user_id, Comment.comment_content, Comment.comment_time, User.username
+    # ).join(User, User.id == Comment.user_id).all()
+
     comments_with_user = db.session.query(
-        Comment.id, Comment.upload_id, Comment.user_id, Comment.comment_content, Comment.comment_time, User.username
-    ).join(User, User.id == Comment.user_id).all()
+        Upload.id,
+        Comment.comment_content,
+        Comment.comment_time,
+        User.username
+    ).select_from(Comment).join(User).outerjoin(Upload, Upload.id == Comment.upload_id).all()
 
     form = EmptyForm()
 
@@ -336,11 +336,19 @@ def check_collections(username):
     total = len(grouped_details)
     pagination = Pagination(page=page, per_page=per_page, total=total)
 
-    comments_with_user = db.session.query(
-        Comment.id, Comment.upload_id, Comment.user_id, Comment.comment_content, Comment.comment_time, User.username
-    ).join(User, User.id == Comment.user_id).all()
+    # comments_with_user = db.session.query(
+    #    Comment.id, Comment.upload_id, Comment.user_id, Comment.comment_content, Comment.comment_time, User.username
+    # ).join(User, User.id == Comment.user_id).all()
     form = EmptyForm()
 
+    comments_with_user = db.session.query(
+        Upload.id,
+        Comment.comment_content,
+        Comment.comment_time,
+        User.username
+    ).select_from(Comment).join(User).outerjoin(Upload, Upload.id == Comment.upload_id).all()
+
+    print(comments_with_user)
     return render_template('User/collections.html', user=user, pagination=pagination, results=paginated_items, form=form, comments_with_user=comments_with_user)
 
 
@@ -394,6 +402,7 @@ def before_request():
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
 
+
 @app.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
@@ -401,12 +410,13 @@ def edit_profile():
     if form.validate_on_submit():
         current_user.username = form.username.data
         current_user.about_me = form.about_me.data
-        
+
         if form.avatar.data:
             avatar_file = form.avatar.data
             filename = secure_filename(avatar_file.filename)
             unique_filename = str(uuid.uuid4()) + "_" + filename
-            avatar_path = os.path.join(app.config['AVATAR_UPLOAD_FOLDER'], unique_filename)
+            avatar_path = os.path.join(
+                app.config['AVATAR_UPLOAD_FOLDER'], unique_filename)
             avatar_file.save(avatar_path)
             current_user.avatar = unique_filename
         db.session.commit()
@@ -416,6 +426,7 @@ def edit_profile():
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
     return render_template('edit_profile.html', title='Edit Profile', form=form)
+
 
 @app.route('/follow/<username>', methods=['POST'])
 @login_required
@@ -587,24 +598,15 @@ def upload():
             db.session.add(new_upload)
             db.session.flush()
 
-<<<<<<< HEAD
-                # Process each file in the request
-                files = request.files.getlist('file')
-                for file in files:
-                    if file:
-                        filename = secure_filename(file.filename)
-                        unique_filename = str(uuid.uuid4()) + "_" + filename
-                        file_path = os.path.join(
-                            app.config['UPLOAD_FOLDER'], unique_filename)
-                        file.save(file_path)
-=======
+            # Process each file in the request
             files = request.files.getlist('file')
             for file in files:
-                if file: 
+                if file:
                     filename = secure_filename(file.filename)
-                    file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+                    unique_filename = str(uuid.uuid4()) + "_" + filename
+                    file_path = os.path.join(
+                        app.config['UPLOAD_FOLDER'], unique_filename)
                     file.save(file_path)
->>>>>>> a57b3d8332dd684e74b4da0263b30310455da6ff
 
                     new_detail = Upload_detail(
                         upload_id=new_upload.id,
