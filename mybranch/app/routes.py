@@ -1,6 +1,5 @@
 from flask import render_template, flash, redirect, url_for
 from app import app
-from app.forms import LoginForm
 from flask_login import current_user, login_user
 import sqlalchemy as sa
 from app.models import User
@@ -10,20 +9,17 @@ from flask import request, g
 from urllib.parse import urlsplit
 from flask_login import login_required
 from app import db
-from flask_paginate import Pagination, get_page_parameter
 from app.forms import RegistrationForm
 from datetime import datetime, timezone
 from app.forms import EditProfileForm
 from app.forms import PostForm
 from app.forms import EmptyForm
 from app.forms import ResetPasswordRequestForm
-from app.email import send_password_reset_email
 from app.forms import ResetPasswordForm
 from app.forms import SearchForm
 from app.forms import MessageForm
 from app.models import Message
 from app.models import Notification
-from flask_babel import _, get_locale
 from app.forms import UploadForm
 from werkzeug.utils import secure_filename
 import os
@@ -40,16 +36,10 @@ from app.forms import EditProfileForm
 import uuid
 
 
-@app.before_request
-def before_request():
-    if current_user.is_authenticated:
-        current_user.last_seen = datetime.now(timezone.utc)
-        db.session.commit()
-        g.search_form = SearchForm()
+@ app.route('/')
+@ app.route('/gallery')
+def gallery():
 
-
-def fetch_data_gallery():
-    # Fetch all necessary data from the database
     uploads_with_collection = db.session.query(
         Upload.id,
         Upload.title,
@@ -80,13 +70,6 @@ def fetch_data_gallery():
         for detail in upload.updetails:
             grouped_details[upload.id]['items'].append(detail.upload_item)
 
-    return grouped_details
-
-
-@ app.route('/')
-@ app.route('/gallery')
-def gallery():
-    grouped_details = fetch_data_gallery()
     comments_with_user = db.session.query(
         Upload.id,
         Comment.comment_content,
