@@ -6,7 +6,7 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_moment import Moment
 from elasticsearch import Elasticsearch
-from flask_bootstrap import Bootstrap5
+from flask_bootstrap import Bootstrap
 from flask_babel import Babel, lazy_gettext as _l
 from flask_dropzone import Dropzone
 
@@ -18,7 +18,7 @@ login = LoginManager(app)
 login.login_view = 'login'
 login.login_message = _l('Please log in to access this page.')
 mail = Mail(app)
-bootstrap = Bootstrap5(app)
+bootstrap = Bootstrap(app)
 moment = Moment(app)
 babel = Babel(app)
 app.elasticsearch = Elasticsearch([app.config['ELASTICSEARCH_URL']]) \
