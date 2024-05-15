@@ -1,4 +1,4 @@
-{% from "macros.html" import render_modal %}
+{% from "macros.html" import render_modal1 %}
 
 {% extends "base.html" %}
 {% block title %}{{ uploads.id}}'s Photo{% endblock %}
@@ -27,7 +27,7 @@
                     data-upload-id="{{ upload_id }}"></i>
                 <span class="comment-count-{{ upload_id }}">{{ details.comment_count }}</span>
                 <!-- Use the macro to render the modal -->
-                {{ render_modal(upload_id, details, comments_with_user) }}
+                {{ render_modal1(upload_id, details, comments_with_user) }}
             </div>
 
         </div>
