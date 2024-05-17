@@ -277,7 +277,9 @@ def reset_password_request():
             sa.select(User).where(User.email == form.email.data))
         if user:
             send_password_reset_email(user)
-        flash('Check your email for the instructions to reset your password')
+            flash('Check your email for the instructions to reset your password')
+        else:
+            flash('No account with that email exists.')
         return redirect(url_for('main.login'))
     return render_template('reset_password_request.html',
                            title='Reset Password', form=form)
@@ -288,8 +290,6 @@ def reset_password(token):
     if current_user.is_authenticated:
         return redirect(url_for('main.index'))
     user = User.verify_reset_password_token(token)
-    if not user:
-        return redirect(url_for('main.index'))
     form = ResetPasswordForm()
     if form.validate_on_submit():
         user.set_password(form.password.data)
@@ -297,8 +297,6 @@ def reset_password(token):
         flash('Your password has been reset.')
         return redirect(url_for('main.login'))
     return render_template('reset_password.html', form=form)
-
-
 
 
 @user_bp.route('/send_message/<recipient>', methods=['GET', 'POST'])
