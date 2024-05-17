@@ -168,3 +168,23 @@ def register():
         flash('Congratulations, you are now a registered user!')
         return redirect(url_for('main.login'))
     return render_template('register.html', title='Register', form=form)
+@main_bp.route('/search',methods=['GET','POST'])
+@login_required
+def search():
+    form = g.search_form
+    filtered_details = {}
+    if form.validate_on_submit():
+        query = form.query.data
+        return redirect(url_for('main.search', query=query))
+    if request.args.get('query'):
+        query = request.args.get('query')
+        uploads = Upload.query.filter(
+            Upload.title.contains(query) |
+            Upload.description.contains(query) |
+            Upload.hashtag.contains(query)
+        ).all()
+        # Fetch the data for each upload
+        grouped_details = fetch_data_gallery()
+        # Filter the grouped details based on the search query
+        filtered_details = {upload_id: details for upload_id, details in grouped_details.items() if upload_id in [upload.id for upload in uploads]}
+    return render_template('search.html', title='search', form=form, grouped_details=filtered_details)

@@ -36,10 +36,10 @@
           </li>
         </ul>
         {% if g.search_form %}
-        <form class="navbar-form col-md-6 d-flex mx-auto" method="get" action="{{ url_for('search_bp.search') }}">
+        <form class="navbar-form col-md-6 d-flex mx-auto" method="get" action="{{ url_for('main.search') }}">
           <div class="input-group my-2 my-lg-0">
-            {{ g.search_form.q(size=20, class='form-control',
-            placeholder=g.search_form.q.label.text) }}
+            {{ g.search_form.query(size=20, class='form-control',
+            placeholder='Wait for the magic ...') }}
             <div class="input-group-append">
               <button class="btn btn-outline-secondary" type="submit">
                 <i class="fas fa-search"></i>

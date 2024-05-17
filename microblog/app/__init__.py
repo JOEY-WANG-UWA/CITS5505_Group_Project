@@ -10,7 +10,6 @@ from flask_babel import Babel, lazy_gettext as _l
 from logging.handlers import SMTPHandler, RotatingFileHandler
 import os
 import logging
-from flask_dropzone import Dropzone
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -19,7 +18,7 @@ mail = Mail()
 bootstrap = Bootstrap5()
 moment = Moment()
 babel = Babel()
-dropzone = Dropzone()
+
 
 def create_app(config_class=Config):
     app = Flask(__name__)
@@ -36,16 +35,24 @@ def create_app(config_class=Config):
     login.login_view = 'main.login'
     login.login_message = _l('Please log in to access this page.')
 
-    print("Database URI:", app.config['SQLALCHEMY_DATABASE_URI'])  # Temporary line for debugging
-    print("Debug mode is", app.debug)  # Print debug mode status
+    # print("Database URI:", app.config['SQLALCHEMY_DATABASE_URI'])  # Temporary line for debugging
+    # print("Debug mode is", app.debug)  # Print debug mode status
 
-    from app.search_routes import search_bp
+    # Define the to_int filter function
+    def to_int(value):
+        try:
+            return int(value)
+        except (TypeError, ValueError):
+            return 0
+
+    # Register the to_int filter with Jinja2
+    app.jinja_env.filters['to_int'] = to_int
+
     from app.main_routes import main_bp
     from app.user_routes import user_bp
 
     app.register_blueprint(main_bp, url_prefix='/')
     app.register_blueprint(user_bp, url_prefix='/user')
-    app.register_blueprint(search_bp, url_prefix='/search')
 
     from app import models  # Import models after initializing app and blueprints
 
