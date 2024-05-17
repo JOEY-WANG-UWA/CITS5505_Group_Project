@@ -302,3 +302,40 @@ img {
         column-count: 5;
     }
 }
+
+/*upload*/
+body {
+    background-color: #f8f9fa;
+}
+.container {
+    margin-top: 50px;
+    max-width: 800px;
+}
+.form-label {
+    font-weight: bold;
+}
+.form-control, .form-select {
+    border-radius: 5px;
+}
+.btn-primary {
+    background-color: #007bff;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 20px;
+    font-size: 1rem;
+}
+.btn-primary:hover {
+    background-color: #0056b3;
+}
+.dropzone {
+    border: 2px dashed #007bff;
+    border-radius: 10px;
+    background: #e9ecef;
+    padding: 30px;
+    text-align: center;
+    font-size: 1.25rem;
+    color: #007bff;
+}
+.dz-message {
+    margin: 0;
+}
