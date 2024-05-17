@@ -10,6 +10,7 @@ from flask_babel import Babel, lazy_gettext as _l
 from logging.handlers import SMTPHandler, RotatingFileHandler
 import os
 import logging
+from flask_dropzone import Dropzone
 
 db = SQLAlchemy()
 migrate = Migrate()
@@ -18,7 +19,7 @@ mail = Mail()
 bootstrap = Bootstrap5()
 moment = Moment()
 babel = Babel()
-
+dropzone = Dropzone()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
