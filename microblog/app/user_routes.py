@@ -213,12 +213,12 @@ def edit_profile():
             filename = secure_filename(avatar_file.filename)
             unique_filename = str(uuid.uuid4()) + "_" + filename
             avatar_path = os.path.join(
-                Config['AVATAR_UPLOAD_FOLDER'], unique_filename)
+                (Config.AVATAR_UPLOAD_FOLDER), unique_filename)
             avatar_file.save(avatar_path)
             current_user.avatar = unique_filename
         db.session.commit()
         flash('Your changes have been saved.')
-        return redirect(url_for('edit_profile'))
+        return redirect(url_for('user.edit_profile'))
     elif request.method == 'GET':
         form.username.data = current_user.username
         form.about_me.data = current_user.about_me
@@ -374,22 +374,23 @@ def upload():
             for file in files:
                 if file:
                     filename = secure_filename(file.filename)
-                    unique_filename = str(uuid.uuid4()) + "_" + filename
+                    unique_filename = f"{new_upload.id}_{filename}"
                     file_path = os.path.join(
-                        Config['UPLOAD_FOLDER'], unique_filename)
+                        (Config.UPLOAD_FOLDER), unique_filename)
                     file.save(file_path)
 
                     new_detail = Upload_detail(
                         upload_id=new_upload.id,
-                        upload_item=filename,
+                        upload_item=unique_filename,
                     )
                     db.session.add(new_detail)
 
             db.session.commit()
             flash('All files successfully uploaded as part of the same post!')
-            return redirect(url_for('gallery'))
+            return redirect(url_for('main.gallery'))
         except Exception as e:
             db.session.rollback()
+            current_app.logger.error(f'Error occurred: {str(e)}')
             flash('An error occurred: ' + str(e), 'error')
-            return redirect(url_for('upload'))
+            return redirect(url_for('user.upload'))
     return render_template('upload.html', form=form)
