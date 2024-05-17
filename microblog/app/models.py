@@ -46,7 +46,7 @@ class User(UserMixin, db.Model):
     about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
     last_seen: so.Mapped[Optional[datetime]] = so.mapped_column(
         default=lambda: datetime.now(timezone.utc))
-    last_message_read_time: so.Mapped[Optional[datetime]]
+    last_message_read_time: so.Mapped[Optional[datetime]]= so.mapped_column(sa.DateTime)
     avatar: so.Mapped[str] = so.mapped_column(
         sa.String(120), index=True, default='default.webp')  # Set default avatar
     def __repr__(self):
@@ -105,19 +105,19 @@ class User(UserMixin, db.Model):
         )
 
     messages_sent: so.WriteOnlyMapped['Message'] = so.relationship(
-        foreign_keys='Message.sender_id', back_populates='author')
+        'Message', foreign_keys='Message.sender_id', back_populates='author')
     messages_received: so.WriteOnlyMapped['Message'] = so.relationship(
-        foreign_keys='Message.recipient_id', back_populates='recipient')
+        'Message', foreign_keys='Message.recipient_id', back_populates='recipient')
 
     def unread_message_count(self):
         last_read_time = self.last_message_read_time or datetime(1900, 1, 1)
-        query = sa.select(Message).where(Message.recipient == self,
+        query = sa.select(Message).where(Message.recipient_id == self.id,
                                          Message.timestamp > last_read_time)
         return db.session.scalar(sa.select(sa.func.count()).select_from(
             query.subquery()))
 
     notifications: so.WriteOnlyMapped['Notification'] = so.relationship(
-        back_populates='user')
+        'Notification', back_populates='user')
 
     def add_notification(self, name, data):
         db.session.execute(self.notifications.delete().where(
@@ -213,12 +213,8 @@ class Message(db.Model):
     timestamp: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
 
-    author: so.Mapped[User] = so.relationship(
-        foreign_keys='Message.sender_id',
-        back_populates='messages_sent')
-    recipient: so.Mapped[User] = so.relationship(
-        foreign_keys='Message.recipient_id',
-        back_populates='messages_received')
+    author: so.Mapped[User] = so.relationship('User', foreign_keys=[sender_id], back_populates='messages_sent')
+    recipient: so.Mapped[User] = so.relationship('User', foreign_keys=[recipient_id], back_populates='messages_received')
 
     def __repr__(self):
         return '<Message {}>'.format(self.body)
@@ -232,7 +228,7 @@ class Notification(db.Model):
     timestamp: so.Mapped[float] = so.mapped_column(index=True, default=time)
     payload_json: so.Mapped[str] = so.mapped_column(sa.Text)
 
-    user: so.Mapped[User] = so.relationship(back_populates='notifications')
+    user: so.Mapped[User] = so.relationship('User', back_populates='notifications')
 
     def get_data(self):
         return json.loads(str(self.payload_json))

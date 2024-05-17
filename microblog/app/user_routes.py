@@ -304,20 +304,16 @@ def reset_password(token):
 @user_bp.route('/send_message/<recipient>', methods=['GET', 'POST'])
 @login_required
 def send_message(recipient):
-    user = db.first_or_404(sa.select(User).where(User.username == recipient))
+    user = db.session.execute(sa.select(User).where(User.username == recipient)).scalar_one_or_none()
     form = MessageForm()
     if form.validate_on_submit():
-        msg = Message(author=current_user, recipient=user,
-                      body=form.message.data)
+        msg = Message(author=current_user, recipient=user, body=form.message.data)
         db.session.add(msg)
-        user.add_notification('unread_message_count',
-                              user.unread_message_count())
+        user.add_notification('unread_message_count', user.unread_message_count())
         db.session.commit()
         flash(_('Your message has been sent.'))
-        return redirect(url_for('user.user', username=recipient))
-    return render_template('send_message.html', title=_('Send Message'),
-                           form=form, recipient=recipient)
-
+        return redirect(url_for('user.messages'))
+    return render_template('send_message.html', title=_('Send Message'), form=form, recipient=recipient)
 
 @user_bp.route('/messages')
 @login_required
