@@ -120,7 +120,7 @@ def circus():
         db.session.add(post)
         db.session.commit()
         flash('Your post is now live!')
-        return redirect(url_for('index'))
+        return redirect(url_for('main.circus'))
     page = request.args.get('page', 1, type=int)
     posts = db.paginate(current_user.following_posts(), page=page,
                         per_page=Config.POSTS_PER_PAGE, error_out=False)
