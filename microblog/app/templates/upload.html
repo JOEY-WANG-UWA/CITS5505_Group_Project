@@ -52,7 +52,7 @@
     {% endfor %}
 
     <!-- Create the form for file upload -->
-    <form method="post" action="{{ url_for('upload') }}" enctype="multipart/form-data" id="file-upload">
+    <form method="post" action="{{ url_for('user.upload') }}" enctype="multipart/form-data" id="file-upload">
         {{ form.hidden_tag() }}
 
         <div class="form-group mb-3">
@@ -123,7 +123,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Initialize Dropzone
     var myDropzone = new Dropzone("#dropzone-area", {
-        url: "{{ url_for('upload') }}",  // Ensure this matches your Flask route
+        url: "{{ url_for('user.upload') }}",  // Ensure this matches your Flask route
         paramName: "file",
         maxFilesize: 2, // MB
         acceptedFiles: ".jpg,.jpeg,.png,.gif,.webp",
@@ -151,10 +151,10 @@ document.addEventListener("DOMContentLoaded", function () {
 
                     // Use XMLHttpRequest to send the form data
                     var xhr = new XMLHttpRequest();
-                    xhr.open("POST", "{{ url_for('upload') }}", true);
+                    xhr.open("POST", "{{ url_for('user.upload') }}", true);
                     xhr.onload = function () {
                         if (xhr.status === 200) {
-                            window.location.href = "{{ url_for('gallery') }}";  // Redirect to gallery page
+                            window.location.href = "{{ url_for('main.gallery') }}";  // Redirect to gallery page
                         } else {
                             // Handle error
                             alert("An error occurred: " + xhr.responseText);
@@ -191,7 +191,7 @@ document.addEventListener("DOMContentLoaded", function () {
             // Handle successful file upload
             this.on("successmultiple", function(files, response) {
                 // Optionally handle successful uploads
-                window.location.href = "{{ url_for('gallery') }}";  // Redirect to gallery page
+                window.location.href = "{{ url_for('main.gallery') }}";  // Redirect to gallery page
             });
 
             // Handle upload errors

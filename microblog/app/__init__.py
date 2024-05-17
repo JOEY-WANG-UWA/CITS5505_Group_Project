@@ -4,21 +4,22 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
 from flask_login import LoginManager
 from flask_mail import Mail
-from flask_bootstrap import Bootstrap5
+from flask_bootstrap import Bootstrap
 from flask_moment import Moment
 from flask_babel import Babel, lazy_gettext as _l
 from logging.handlers import SMTPHandler, RotatingFileHandler
 import os
 import logging
+from flask_dropzone import Dropzone
 
 db = SQLAlchemy()
 migrate = Migrate()
 login = LoginManager()
 mail = Mail()
-bootstrap = Bootstrap5()
+bootstrap = Bootstrap()
 moment = Moment()
 babel = Babel()
-
+dropzone = Dropzone()
 
 def create_app(config_class=Config):
     app = Flask(__name__)
