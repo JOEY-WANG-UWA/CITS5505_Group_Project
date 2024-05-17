@@ -100,7 +100,7 @@
     </div>
   </nav>
   <div class="menu">
-    <a href="#" class="menu-item highlight">Recomandation</a>
+    <a href="#" class="menu-item highlight">Recommendation</a>
     <a href="#" class="menu-item">Fashion</a>
     <a href="#" class="menu-item">Food</a>
     <a href="#" class="menu-item">Makeup</a>
@@ -126,24 +126,35 @@
     integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous">
     </script>
   {{ moment.include_moment() }}
+
   <script>
     function set_message_count(n) {
       const count = document.getElementById('message_count');
       count.innerText = n;
       count.style.visibility = n ? 'visible' : 'hidden';
     }
-  </script>
-  {% block scripts %}
 
-  {% endblock %}
+    {% if current_user.is_authenticated %}
+    function updateMessageCount() {
+      fetch('{{ url_for("user.notifications") }}')
+        .then(response => response.json())
+        .then(data => {
+          let unreadCount = data.reduce((acc, notification) => {
+            return notification.name === 'unread_message_count' ? notification.data : acc;
+          }, 0);
+          const messageCountElement = document.getElementById('message_count');
+          if (messageCountElement) {
+            messageCountElement.innerText = unreadCount;
+            messageCountElement.style.visibility = unreadCount > 0 ? 'visible' : 'hidden';
+          }
+        })
+        .catch(error => console.error('Error fetching notifications:', error));
+    }
 
-  <main role="main" class="container mt-4">
-    {% block content %}
-    {% endblock content %}
-  </main>
-
-  <script>
     document.addEventListener('DOMContentLoaded', function () {
+      updateMessageCount();
+      setInterval(updateMessageCount, 10000);  // Update every 10 seconds
+
       const likeButtons = document.querySelectorAll('.like-button');
       likeButtons.forEach(button => {
         button.addEventListener('click', function () {
@@ -186,7 +197,16 @@
         });
       });
     });
+    {% endif %}
   </script>
+
+  {% block scripts %}
+  {% endblock %}
+  
+  <main role="main" class="container mt-4">
+    {% block content %}
+    {% endblock content %}
+  </main>
 
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/masonry/4.2.2/masonry.pkgd.min.js"></script>

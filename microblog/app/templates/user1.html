@@ -126,9 +126,17 @@
         </form>
         </p>
         {% endif %}
+        <!-- Send Message Button -->
+        {% if user.id != current_user.id %}
+        <p>
+          <a href="{{ url_for('user.send_message', recipient=user.username) }}" class="btn btn-primary">
+            Send Message
+          </a>
+        </p>
+        {% endif %}
       </div>
     </div>
-
+  </div>
 
     <!-- JavaScript -->
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
