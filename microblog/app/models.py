@@ -260,8 +260,8 @@ class Upload(db.Model):
         'Collection', backref='uploads', lazy='dynamic')
 
     user: so.Mapped['User'] = so.relationship('User', back_populates='uploads')
-    # details: so.Mapped['Upload_detail'] = so.relationship(
-    #     'Upload_detail', back_populates='upload')
+    details: so.Mapped['Upload_detail'] = so.relationship(
+         'Upload_detail', back_populates='upload')
 
     def __repr__(self):
         return '<Upload title: "{}">'.format(self.title)
@@ -273,8 +273,8 @@ class Upload_detail(db.Model):
                                                  index=True)
     upload_item: so.Mapped[str] = so.mapped_column(sa.String(140))
 
-    # upload: so.Mapped['Upload'] = so.relationship(
-    #     'Upload', back_populates='details')
+    upload: so.Mapped['Upload'] = so.relationship(
+         'Upload', back_populates='details')
 
     def __repr__(self):
         return '<Upload item: "{}">'.format(self.upload_item)
