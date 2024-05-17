@@ -46,6 +46,8 @@ def before_request():
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
         g.search_form = SearchForm()
+    else:
+        g.search_form = SearchForm()
 
 
 def fetch_data_gallery():
@@ -179,7 +181,7 @@ def explore():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
-        return redirect(url_for('index'))
+        return redirect(url_for('gallery'))
     form = LoginForm()
     if form.validate_on_submit():
         user = db.session.scalar(
@@ -190,7 +192,7 @@ def login():
         login_user(user, remember=form.remember_me.data)
         next_page = request.args.get('next')
         if not next_page or urlsplit(next_page).netloc != '':
-            next_page = url_for('index')
+            next_page = url_for('gallery')
         return redirect(next_page)
     return render_template('login.html', title='Sign In', form=form)
 
@@ -198,7 +200,7 @@ def login():
 @app.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for('index'))
+    return redirect(url_for('gallery'))
 
 
 @app.route('/register', methods=['GET', 'POST'])
@@ -368,7 +370,7 @@ def show_following(username):
 
     following = pagination.items
     form = EmptyForm()
-    return render_template('user/following.html', user=user, form=form, pagination=pagination, following=following)
+    return render_template('User/following.html', user=user, form=form, pagination=pagination, following=following)
 
 
 @app.route('/user/<username>/followers')
@@ -386,7 +388,7 @@ def show_follower(username):
 
     follower = pagination.items
     form = EmptyForm()
-    return render_template('user/followed.html', user=user, form=form, pagination=pagination, follower=follower)
+    return render_template('User/followed.html', user=user, form=form, pagination=pagination, follower=follower)
 
 
 @app.before_request
@@ -502,20 +504,26 @@ def reset_password(token):
     return render_template('reset_password.html', form=form)
 
 
-@app.route('/search')
+@app.route('/search', methods=['GET', 'POST'])
 @login_required
 def search():
-    if not g.search_form.validate():
-        return redirect(url_for('index'))
-    page = request.args.get('page', 1, type=int)
-    posts, total = Post.search(g.search_form.q.data, page,
-                               app.config['POSTS_PER_PAGE'])
-    next_url = url_for('search', q=g.search_form.q.data, page=page + 1) \
-        if total > page * app.config['POSTS_PER_PAGE'] else None
-    prev_url = url_for('search', q=g.search_form.q.data, page=page - 1) \
-        if page > 1 else None
-    return render_template('search.html', title=_('Search'), posts=posts,
-                           next_url=next_url, prev_url=prev_url)
+    form = g.search_form
+    filtered_details = {}
+    if form.validate_on_submit():
+        query = form.query.data
+        return redirect(url_for('search', query=query))
+    if request.args.get('query'):
+        query = request.args.get('query')
+        uploads = Upload.query.filter(
+            Upload.title.contains(query) |
+            Upload.description.contains(query) |
+            Upload.hashtag.contains(query)
+        ).all()
+        # Fetch the data for each upload
+        grouped_details = fetch_data_gallery()
+        # Filter the grouped details based on the search query
+        filtered_details = {upload_id: details for upload_id, details in grouped_details.items() if upload_id in [upload.id for upload in uploads]}
+    return render_template('search.html', title='search', form=form, grouped_details=filtered_details)
 
 
 @app.route('/send_message/<recipient>', methods=['GET', 'POST'])
