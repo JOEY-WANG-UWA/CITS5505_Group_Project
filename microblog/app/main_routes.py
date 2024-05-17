@@ -6,14 +6,10 @@ from datetime import datetime, timezone
 from collections import defaultdict
 from app.forms import LoginForm, RegistrationForm, EditProfileForm, PostForm, EmptyForm, ResetPasswordRequestForm, ResetPasswordForm, SearchForm, MessageForm, UploadForm, CommentForm
 from app.models import User, Post, Message, Notification, Upload, Upload_detail, Comment, Collection, Favourite, followers
+from app import db, Config
 
 main_bp = Blueprint('main', __name__)
 
-def to_int(value):
-    try:
-        return int(value)
-    except (TypeError, ValueError):
-        return 0
 
 @main_bp.before_request
 def before_request():
@@ -21,6 +17,7 @@ def before_request():
         current_user.last_seen = datetime.now(timezone.utc)
         db.session.commit()
         g.search_form = SearchForm()
+
 
 def fetch_data_gallery():
     uploads_with_collection = db.session.query(
@@ -55,39 +52,86 @@ def fetch_data_gallery():
 
     return grouped_details
 
-@main_bp.route('/')
-@main_bp.route('/index')
-def gallery():
-    uploads = Upload.query.all()
-    grouped_details = fetch_data_gallery()
-    return render_template('main/gallery_view.html', grouped_details=grouped_details)
 
-@main_bp.route('/explore', methods=['GET', 'POST'])
-def explore():
-    uploads = Upload.query.order_by(Upload.upload_time.desc()).all()
-    return redirect(url_for('main.gallery'))
+@main_bp.route('/')
+@main_bp.route('/gallery')
+def gallery():
+    grouped_details = fetch_data_gallery()
+    comments_with_user = db.session.query(
+        Upload.id,
+        Comment.comment_content,
+        Comment.comment_time,
+        User.username
+    ).select_from(Comment).join(User).outerjoin(Upload, Upload.id == Comment.upload_id).all()
+
+    return render_template('main/gallery_view.html', grouped_details=grouped_details, comments_with_user=comments_with_user)
+
 
 @main_bp.route('/add_to_collection/<int:upload_id>', methods=['POST'])
 @login_required
 def add_to_collection(upload_id):
-    upload = db.get_or_404(Upload, upload_id)
-    collection = Collection(user_id=current_user.id, upload_id=upload.id)
-    db.session.add(collection)
-    db.session.commit()
-    flash('Upload added to collection.')
-    return redirect(url_for('main.gallery'))
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'Authentication required'}), 401
+
+    collection = Collection.query.filter_by(
+        upload_id=upload_id, user_id=current_user.id).first()
+    if collection:
+        db.session.delete(collection)
+        db.session.commit()
+        new_count = Collection.query.filter_by(upload_id=upload_id).count()
+        return jsonify({'success': True, 'newCount': new_count, 'liked': False})
+    else:
+        new_collection = Collection(
+            upload_id=upload_id, user_id=current_user.id)
+        db.session.add(new_collection)
+        db.session.commit()
+        new_count = Collection.query.filter_by(upload_id=upload_id).count()
+        return jsonify({'success': True, 'newCount': new_count, 'liked': True})
+
 
 @main_bp.route('/post_comment/<int:upload_id>', methods=['POST'])
-@login_required
 def post_comment(upload_id):
-    upload = db.get_or_404(Upload, upload_id)
-    form = CommentForm()
+    if not current_user.is_authenticated:
+        return jsonify({'success': False, 'message': 'User not authenticated'}), 401
+
+    data = request.get_json()
+    comment_content = data.get('comment')
+
+    if not comment_content:
+        return jsonify({'success': False, 'message': 'Comment content is required'}), 400
+
+    new_comment = Comment(
+        upload_id=upload_id,
+        user_id=current_user.id,
+        comment_content=comment_content
+    )
+    db.session.add(new_comment)
+    db.session.commit()
+    new_count = Comment.query.filter_by(upload_id=upload_id).count()
+    return jsonify({'success': True, 'newCount': new_count, 'message': 'Comment posted', 'username': current_user.username, 'comment_time': new_comment.comment_time.strftime('%Y-%m-%d %H:%M:%S')})
+
+
+@main_bp.route('/index', methods=['GET', 'POST'])
+@login_required
+def circus():
+    form = PostForm()
     if form.validate_on_submit():
-        comment = Comment(body=form.body.data, author=current_user, upload=upload)
-        db.session.add(comment)
+        post = Post(body=form.post.data, author=current_user)
+        db.session.add(post)
         db.session.commit()
-        flash('Your comment has been posted.')
-    return redirect(url_for('main.show_photo', photo_id=upload.id))
+        flash('Your post is now live!')
+        return redirect(url_for('index'))
+    page = request.args.get('page', 1, type=int)
+    posts = db.paginate(current_user.following_posts(), page=page,
+                        per_page=Config.POSTS_PER_PAGE, error_out=False)
+    next_url = url_for('index', page=posts.next_num) \
+        if posts.has_next else None
+    prev_url = url_for('index', page=posts.prev_num) \
+        if posts.has_prev else None
+    return render_template('index.html', title='Circus', form=form,
+                           posts=posts.items, next_url=next_url,
+                           prev_url=prev_url)
+
 
 @main_bp.route('/login', methods=['GET', 'POST'])
 def login():
@@ -103,15 +147,17 @@ def login():
         return redirect(url_for('main.gallery'))
     return render_template('login.html', form=form)
 
+
 @main_bp.route('/logout')
 def logout():
     logout_user()
     return redirect(url_for('main.gallery'))
 
+
 @main_bp.route('/register', methods=['GET', 'POST'])
 def register():
     if current_user.is_authenticated:
-        return redirect(url_for('main.index'))
+        return redirect(url_for('main.gallery'))
     form = RegistrationForm()
     if form.validate_on_submit():
         user = User(username=form.username.data,
