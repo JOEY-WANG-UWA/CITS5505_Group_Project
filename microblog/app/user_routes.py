@@ -20,6 +20,7 @@ from app.email import send_password_reset_email
 
 user_bp = Blueprint('user', __name__)
 
+
 def fetch_data(user_id, for_collections=False):
     # Query to get the counts of collections and comments for each upload
     counts_query = db.session.query(
@@ -82,7 +83,7 @@ def user(username):
     user = db.session.query(User).filter_by(username=username).first_or_404()
 
     page = request.args.get('page', 1, type=int)
-    per_page = Config.get('POSTS_PER_PAGE', 10)
+    per_page = Config.POSTS_PER_PAGE
 
     # Fetch data using the helper function
     grouped_details = fetch_data(user.id)
@@ -127,7 +128,7 @@ def check_collections(username):
 
     # Pagination settings
     page = request.args.get('page', 1, type=int)
-    per_page = Config.get('POSTS_PER_PAGE', 10)
+    per_page = Config.POSTS_PER_PAGE
 
     # Fetch data for collections using the helper function
     grouped_details = fetch_data(user.id, for_collections=True)
@@ -167,7 +168,7 @@ def show_following(username):
         join(followers, followers.c.followed_id == followed_alias.id). \
         filter(followers.c.follower_id == user.id). \
         paginate(
-            page=page, per_page=Config['POSTS_PER_PAGE'], error_out=False)
+            page=page, per_page=Config.POSTS_PER_PAGE, error_out=False)
 
     following = pagination.items
     form = EmptyForm()
@@ -185,7 +186,7 @@ def show_follower(username):
         join(followers, followers.c.follower_id == following_alias.id). \
         filter(followers.c.followed_id == user.id). \
         paginate(
-            page=page, per_page=Config['POSTS_PER_PAGE'], error_out=False)
+            page=page, per_page=Config.POSTS_PER_PAGE, error_out=False)
 
     follower = pagination.items
     form = EmptyForm()
@@ -199,7 +200,7 @@ def before_request():
         db.session.commit()
 
 
-@user_bp.route('/<username>/edit_profile', methods=['GET', 'POST'])
+@user_bp.route('/edit_profile', methods=['GET', 'POST'])
 @login_required
 def edit_profile():
     form = EditProfileForm()
@@ -212,7 +213,7 @@ def edit_profile():
             filename = secure_filename(avatar_file.filename)
             unique_filename = str(uuid.uuid4()) + "_" + filename
             avatar_path = os.path.join(
-                app.config['AVATAR_UPLOAD_FOLDER'], unique_filename)
+                Config['AVATAR_UPLOAD_FOLDER'], unique_filename)
             avatar_file.save(avatar_path)
             current_user.avatar = unique_filename
         db.session.commit()
@@ -328,7 +329,7 @@ def messages():
     query = current_user.messages_received.select().order_by(
         Message.timestamp.desc())
     messages = db.paginate(query, page=page,
-                           per_page=app.config['POSTS_PER_PAGE'],
+                           per_page=Config.POSTS_PER_PAGE,
                            error_out=False)
     next_url = url_for('user.messages', page=messages.next_num) \
         if messages.has_next else None

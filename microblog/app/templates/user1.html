@@ -62,7 +62,7 @@
           </li>
           {% else %}
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{{ url_for('messages') }}">
+            <a class="nav-link" aria-current="page" href="{{ url_for('user.messages') }}">
               <i class="fas fa-envelope fa-lg" title="Messages"></i>
               {% set unread_message_count = current_user.unread_message_count() %}
               <span id="message_count" class="badge text-bg-danger" style="visibility: {% if unread_message_count %}visible
@@ -72,17 +72,17 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{{ url_for('user', username=current_user.username) }}">
+            <a class="nav-link" aria-current="page" href="{{ url_for('user.user', username=current_user.username) }}">
               <i class="fas fa-user fa-lg" title="Profile"></i>
             </a>
           </li>
           <li class="nav-item">
-            <a class="btn btn-orange" href="{{ url_for('upload') }}" title="Upload">
+            <a class="btn btn-orange" href="{{ url_for('user.upload') }}" title="Upload">
               <i class="fas fa-cloud-upload-alt fa-lg"></i>
             </a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{{ url_for('logout') }}" title="Log out">
+            <a class="nav-link" aria-current="page" href="{{ url_for('main.logout') }}" title="Log out">
               <i class="fas fa-sign-out-alt fa-lg"></i>
             </a>
           </li>
@@ -109,17 +109,17 @@
                 <p>{{ user.followers_count() }} followers, {{ user.following_count() }} following.</p>
                 <!-- Profile Actions -->
                 {% if user == current_user %}
-                    <p><a href="{{ url_for('edit_profile') }}">Edit your profile</a></p>
+                    <p><a href="{{ url_for('user.edit_profile') }}">Edit your profile</a></p>
                 {% elif not current_user.is_following(user) %}
                     <p>
-                        <form action="{{ url_for('follow', username=user.username) }}" method="post">
+                        <form action="{{ url_for('user.follow', username=user.username) }}" method="post">
                             {{ form.hidden_tag() }}
                             {{ form.submit(value='Follow', class_='btn btn-primary') }}
                         </form>
                     </p>
                 {% else %}
                     <p>
-                        <form action="{{ url_for('unfollow', username=user.username) }}" method="post">
+                        <form action="{{ url_for('user.unfollow', username=user.username) }}" method="post">
                             {{ form.hidden_tag() }}
                             {{ form.submit(value='Unfollow', class_='btn btn-primary') }}
                         </form>

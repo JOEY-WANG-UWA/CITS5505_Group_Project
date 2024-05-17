@@ -309,3 +309,4 @@ class Comment(db.Model):
     comment_time: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
     comment_content: so.Mapped[str] = so.mapped_column(sa.String(300))
+

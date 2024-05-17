@@ -42,7 +42,7 @@
           </li>
         </ul>
         {% if g.search_form %}
-        <form class="navbar-form col-md-6 d-flex mx-auto" method="get" action="{{ url_for('search') }}">
+        <form class="navbar-form col-md-6 d-flex mx-auto" method="get" action="{{ url_for('search_bp.search') }}">
           <div class="input-group my-2 my-lg-0">
             {{ g.search_form.q(size=20, class='form-control',
             placeholder=g.search_form.q.label.text) }}
@@ -68,7 +68,7 @@
           </li>
           {% else %}
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{{ url_for('main.messages') }}">
+            <a class="nav-link" aria-current="page" href="{{ url_for('user.messages') }}">
               <i class="fas fa-envelope fa-lg" title="Messages"></i>
               {% set unread_message_count = current_user.unread_message_count() %}
               <span id="message_count" class="badge text-bg-danger" style="visibility: {% if unread_message_count %}visible

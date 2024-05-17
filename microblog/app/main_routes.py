@@ -1,16 +1,13 @@
-from flask import Blueprint, render_template, flash, redirect, url_for,g,request, current_app, jsonify
+from flask import Blueprint, render_template, flash, redirect, url_for, g, request, current_app, jsonify
 from flask_login import current_user, login_user, logout_user, login_required
 from app import db
 from sqlalchemy import select, func, or_, distinct
-
 from datetime import datetime, timezone
 from collections import defaultdict
-
-from app.forms import LoginForm, RegistrationForm, EditProfileForm, PostForm,EmptyForm, ResetPasswordRequestForm, ResetPasswordForm, SearchForm, MessageForm, UploadForm,CommentForm
+from app.forms import LoginForm, RegistrationForm, EditProfileForm, PostForm, EmptyForm, ResetPasswordRequestForm, ResetPasswordForm, SearchForm, MessageForm, UploadForm, CommentForm
 from app.models import User, Post, Message, Notification, Upload, Upload_detail, Comment, Collection, Favourite, followers
 
-
-main_bp = Blueprint('main_bp', __name__)
+main_bp = Blueprint('main', __name__)
 
 def to_int(value):
     try:
@@ -25,10 +22,7 @@ def before_request():
         db.session.commit()
         g.search_form = SearchForm()
 
-
-
 def fetch_data_gallery():
-    # Fetch all necessary data from the database
     uploads_with_collection = db.session.query(
         Upload.id,
         Upload.title,
@@ -51,7 +45,7 @@ def fetch_data_gallery():
             'description': description,
             'collect_count': collect_count,
             'comment_count': comment_count,
-            'items': []
+            'items': []  # Initialize items as an empty list
         }
 
     uploads = Upload.query.all()
@@ -61,16 +55,11 @@ def fetch_data_gallery():
 
     return grouped_details
 
-main_bp = Blueprint('main', __name__)
-
 @main_bp.route('/')
 @main_bp.route('/index')
 def gallery():
     uploads = Upload.query.all()
     grouped_details = fetch_data_gallery()
-    for upload in uploads:
-        for detail in upload.updetails:
-            grouped_details[upload.id].append(detail)
     return render_template('main/gallery_view.html', grouped_details=grouped_details)
 
 @main_bp.route('/explore', methods=['GET', 'POST'])
@@ -118,7 +107,6 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('main.gallery'))
-
 
 @main_bp.route('/register', methods=['GET', 'POST'])
 def register():
