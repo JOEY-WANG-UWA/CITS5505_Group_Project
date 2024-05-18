@@ -49,7 +49,8 @@
                                 <small class="text-muted mr-2">{{ user.username }}</small>
                             </div>
                             <div class="d-flex align-items-center">
-                                <i class="fas fa-heart" style="color: red; margin-right: 5px;"></i>
+                                <i class="far fa-heart like-icon-{{ upload_id }} like-button"" style=" color: red;
+                                    margin-right: 5px;" data-upload-id="{{ item.upload_id }}"></i>
                                 <small class="text-muted mr-2">{{ item['collect_count'] }}</small>
                             </div>
                         </div>
