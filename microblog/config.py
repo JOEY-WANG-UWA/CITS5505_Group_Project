@@ -23,3 +23,19 @@ class Config:
     DROPZONE_PARALLEL_UPLOADS = 9
     UPLOAD_FOLDER = os.path.join(basedir, 'app', 'static', 'img')
     AVATAR_UPLOAD_FOLDER = os.path.join(basedir, 'app', 'static', 'img', 'avatar')
+
+class DeploymentConfig(Config):
+    SQLALCHEMY_DATABASE_URI = os.environ.get('DATABASE_URL') or \
+                              'sqlite:///' + os.path.join(basedir, 'instance', 'app.db')
+    DEBUG = False
+
+
+
+class TestConfig(Config):
+        TESTING = True
+        SQLALCHEMY_DATABASE_URI = 'sqlite:///:memory:'
+
+
+
+
+
