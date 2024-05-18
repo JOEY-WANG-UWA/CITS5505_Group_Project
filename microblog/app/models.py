@@ -23,6 +23,7 @@ followers = sa.Table(
               primary_key=True)
 )
 
+
 @login.user_loader
 def load_user(id):
     return User.query.get(int(id))
@@ -42,13 +43,14 @@ class User(UserMixin, db.Model):
     posts: so.WriteOnlyMapped['Post'] = so.relationship(
         back_populates='author')
 
-
     about_me: so.Mapped[Optional[str]] = so.mapped_column(sa.String(140))
     last_seen: so.Mapped[Optional[datetime]] = so.mapped_column(
         default=lambda: datetime.now(timezone.utc))
-    last_message_read_time: so.Mapped[Optional[datetime]]= so.mapped_column(sa.DateTime)
+    last_message_read_time: so.Mapped[Optional[datetime]] = so.mapped_column(
+        sa.DateTime)
     avatar: so.Mapped[str] = so.mapped_column(
         sa.String(120), index=True, default='default.webp')  # Set default avatar
+
     def __repr__(self):
         return '<User {}>'.format(self.username)
 
@@ -213,8 +215,10 @@ class Message(db.Model):
     timestamp: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
 
-    author: so.Mapped[User] = so.relationship('User', foreign_keys=[sender_id], back_populates='messages_sent')
-    recipient: so.Mapped[User] = so.relationship('User', foreign_keys=[recipient_id], back_populates='messages_received')
+    author: so.Mapped[User] = so.relationship(
+        'User', foreign_keys=[sender_id], back_populates='messages_sent')
+    recipient: so.Mapped[User] = so.relationship(
+        'User', foreign_keys=[recipient_id], back_populates='messages_received')
 
     def __repr__(self):
         return '<Message {}>'.format(self.body)
@@ -228,7 +232,8 @@ class Notification(db.Model):
     timestamp: so.Mapped[float] = so.mapped_column(index=True, default=time)
     payload_json: so.Mapped[str] = so.mapped_column(sa.Text)
 
-    user: so.Mapped[User] = so.relationship('User', back_populates='notifications')
+    user: so.Mapped[User] = so.relationship(
+        'User', back_populates='notifications')
 
     def get_data(self):
         return json.loads(str(self.payload_json))
@@ -251,13 +256,13 @@ class Upload(db.Model):
     hashtag: so.Mapped[str] = so.mapped_column(sa.String(140))
     description: so.Mapped[str] = so.mapped_column(sa.String(300))
     updetails = db.relationship(
-        'Upload_detail', backref='uploads', lazy='dynamic')
+        'Upload_detail', backref='uploads', lazy='dynamic', overlaps="updetails,uploads")
     collections = db.relationship(
         'Collection', backref='uploads', lazy='dynamic')
 
     user: so.Mapped['User'] = so.relationship('User', back_populates='uploads')
     details: so.Mapped['Upload_detail'] = so.relationship(
-         'Upload_detail', back_populates='upload')
+        'Upload_detail', back_populates='upload', overlaps="updetails,uploads")
 
     def __repr__(self):
         return '<Upload title: "{}">'.format(self.title)
@@ -270,7 +275,7 @@ class Upload_detail(db.Model):
     upload_item: so.Mapped[str] = so.mapped_column(sa.String(140))
 
     upload: so.Mapped['Upload'] = so.relationship(
-         'Upload', back_populates='details')
+        'Upload', back_populates='details', overlaps="updetails,uploads")
 
     def __repr__(self):
         return '<Upload item: "{}">'.format(self.upload_item)
@@ -305,4 +310,3 @@ class Comment(db.Model):
     comment_time: so.Mapped[datetime] = so.mapped_column(
         index=True, default=lambda: datetime.now(timezone.utc))
     comment_content: so.Mapped[str] = so.mapped_column(sa.String(300))
-
