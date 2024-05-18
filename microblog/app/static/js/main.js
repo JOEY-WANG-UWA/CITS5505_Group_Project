@@ -1,23 +1,13 @@
 
 
-function showPostDetails(imgUrl, title, description) {
-    console.log(imgUrl, title, description);
-    $('#modalImg').attr('src', imgUrl);
-    $('#postModalLabel').text(title);
-    $('#modalDesc').text(description);
-    $('#modalLikes').text('Likes: ' + likes);
-    $('#postModal').modal('show');
-}
-
-
 
 function toggleHeart(element) {
     if (element.classList.contains('fas')) {
-        // 切换到空心
+
         element.classList.remove('fas');
         element.classList.add('far');
     } else {
-        // 切换到实心
+
         element.classList.remove('far');
         element.classList.add('fas');
     }
@@ -47,7 +37,7 @@ function submitComment(uploadId) {
                 const commentSection = document.getElementById('comment-section-' + uploadId);
                 const newComment = document.createElement('div');
                 newComment.className = 'comment';
-                newComment.innerHTML = `<strong>${data.username}</strong>: ${comment}`;
+                newComment.innerHTML = `<strong>${data.username}</strong>: ${comment} <small>${data.comment_time}</small>`;
                 commentSection.appendChild(newComment);
                 input.value = ''; // Clear input field after posting
 
@@ -80,12 +70,12 @@ document.addEventListener("DOMContentLoaded", function () {
         uploadMultiple: true,  // Upload multiple files in one request
         parallelUploads: 10,  // Number of parallel uploads
         addRemoveLinks: true,  // Add remove links
-        init: function() {
+        init: function () {
             var myDropzone = this;
             var fileList = [];
 
             // Handle form submission
-            document.querySelector("#file-upload").addEventListener("submit", function(event) {
+            document.querySelector("#file-upload").addEventListener("submit", function (event) {
                 event.preventDefault();
                 event.stopPropagation();
 
@@ -93,7 +83,7 @@ document.addEventListener("DOMContentLoaded", function () {
                     // Create a FormData object and append form data
                     var formData = new FormData(this);
                     // Append each file to the FormData object
-                    myDropzone.getQueuedFiles().forEach(function(file) {
+                    myDropzone.getQueuedFiles().forEach(function (file) {
                         formData.append("file", file);
                     });
 
@@ -116,20 +106,20 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             // Append form data to the file upload
-            this.on("sendingmultiple", function(files, xhr, formData) {
+            this.on("sendingmultiple", function (files, xhr, formData) {
                 var formElements = document.querySelectorAll("#file-upload input, #file-upload select, #file-upload textarea");
-                formElements.forEach(function(element) {
+                formElements.forEach(function (element) {
                     formData.append(element.name, element.value);
                 });
             });
 
             // Handle file added event
-            this.on("addedfile", function(file) {
+            this.on("addedfile", function (file) {
                 fileList.push(file.name);
             });
 
             // Handle file removed event
-            this.on("removedfile", function(file) {
+            this.on("removedfile", function (file) {
                 var index = fileList.indexOf(file.name);
                 if (index > -1) {
                     fileList.splice(index, 1);
@@ -137,18 +127,18 @@ document.addEventListener("DOMContentLoaded", function () {
             });
 
             // Handle successful file upload
-            this.on("successmultiple", function(files, response) {
+            this.on("successmultiple", function (files, response) {
                 // Optionally handle successful uploads
                 window.location.href = "/gallery";  // Redirect to gallery page
             });
 
             // Handle upload errors
-            this.on("errormultiple", function(files, response) {
+            this.on("errormultiple", function (files, response) {
                 // Ensure response is converted to string if necessary
                 if (typeof response !== "string") {
                     response = JSON.stringify(response);
                 }
-                files.forEach(function(file) {
+                files.forEach(function (file) {
                     file.previewElement.querySelector(".dz-error-message").textContent = response;
                 });
             });
@@ -158,10 +148,10 @@ document.addEventListener("DOMContentLoaded", function () {
     // Initialize Sortable on Dropzone element
     Sortable.create(myDropzone.element, {
         draggable: ".dz-preview",
-        onEnd: function(evt) {
+        onEnd: function (evt) {
             var files = myDropzone.getAcceptedFiles();
             var orderedFiles = [];
-            document.querySelectorAll("#dropzone-area .dz-preview").forEach(function(element) {
+            document.querySelectorAll("#dropzone-area .dz-preview").forEach(function (element) {
                 var filename = element.querySelector(".dz-filename span").innerText;
                 var file = files.find(f => f.name === filename);
                 if (file) {
