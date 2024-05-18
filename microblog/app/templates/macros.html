@@ -46,10 +46,10 @@
                 <p class="text-muted">{{ details.description }}</p>
                 <!-- for collection -->
                 <div class="collect-content">
-                    <i class="far fa-heart like-icon-{{ upload_id }} like-button" style="color: red;"
-                        data-upload-id="{{ upload_id }}"></i>
+                    <i class="far fa-heart like-icon" style="color: red;" data-upload-id="{{ upload_id }}"></i>
                     <span class="like-count-{{ upload_id }}">{{ details.collect_count }}</span>
                 </div>
+
                 <div class="comments-container mt-4">
                     <div class="comment-section" id="comment-section-{{ upload_id }}">
                         <!-- Input for new comments -->
@@ -65,7 +65,7 @@
                             {% if comment.id|to_int == upload_id|to_int %}
                             <div class="comment">
                                 <strong>{{ comment.username }}</strong>:<span>{{
-                                comment.comment_content}}</span>
+                                    comment.comment_content}}</span>
                                 <small>{{ comment.comment_time.strftime('%Y-%m-%d %H:%M:%S')
                                     }}</small>
                             </div>
