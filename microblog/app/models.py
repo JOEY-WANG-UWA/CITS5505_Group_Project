@@ -1,3 +1,4 @@
+from flask import url_for
 from datetime import datetime, timezone
 from typing import Optional
 from flask_sqlalchemy import SQLAlchemy
@@ -53,6 +54,12 @@ class User(UserMixin, db.Model):
 
     def __repr__(self):
         return '<User {}>'.format(self.username)
+
+    def avatar_url(self):
+        if self.avatar:
+            return url_for('static', filename='img/avatar/' + self.avatar)
+        else:
+            return url_for('static', filename='img/avatar/default.webp')
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
