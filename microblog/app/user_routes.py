@@ -1,19 +1,19 @@
-from flask import Blueprint, render_template, flash, redirect, url_for,g,request, current_app, jsonify
+from flask import Blueprint, render_template, flash, redirect, url_for, g, request, current_app, jsonify
 from flask_login import current_user, login_required
 from flask_babel import _
 from flask_paginate import Pagination
 from werkzeug.utils import secure_filename
-from sqlalchemy import  func,  distinct
+from sqlalchemy import func,  distinct
 from sqlalchemy.orm import aliased
 from datetime import datetime, timezone
 from collections import defaultdict
 import os
 import uuid
 import sqlalchemy as sa
-from app import db,Config
+from app import db, Config
 from app.forms import (LoginForm, RegistrationForm, EditProfileForm, PostForm,
                        EmptyForm, ResetPasswordRequestForm, ResetPasswordForm,
-                       SearchForm, MessageForm, UploadForm,CommentForm)
+                       SearchForm, MessageForm, UploadForm, CommentForm)
 from app.models import (User, Post, Message, Notification, Upload, Upload_detail,
                         Comment, Collection, Favourite, followers)
 from app.email import send_password_reset_email
@@ -73,7 +73,7 @@ def fetch_data(user_id, for_collections=False):
     for upload in uploads:
         for detail in upload.updetails:
             grouped_details[upload.id]['items'].append(detail.upload_item)
-    print(grouped_details)
+
     return list(grouped_details.values())
 
 
@@ -110,7 +110,6 @@ def user(username):
 
     return render_template('user.html', user=user, pagination=pagination, form=form, results=paginated_items,
                            comments_with_user=comments_with_user)
-
 
 
 def to_int(value):
@@ -152,7 +151,6 @@ def check_collections(username):
         User.username
     ).select_from(Comment).join(User).outerjoin(Upload, Upload.id == Comment.upload_id).all()
 
-    print(comments_with_user)
     return render_template('User/collections.html', user=user, pagination=pagination, results=paginated_items, form=form, comments_with_user=comments_with_user)
 
 
@@ -299,21 +297,23 @@ def reset_password(token):
     return render_template('reset_password.html', form=form)
 
 
-
-
 @user_bp.route('/send_message/<recipient>', methods=['GET', 'POST'])
 @login_required
 def send_message(recipient):
-    user = db.session.execute(sa.select(User).where(User.username == recipient)).scalar_one_or_none()
+    user = db.session.execute(sa.select(User).where(
+        User.username == recipient)).scalar_one_or_none()
     form = MessageForm()
     if form.validate_on_submit():
-        msg = Message(author=current_user, recipient=user, body=form.message.data)
+        msg = Message(author=current_user, recipient=user,
+                      body=form.message.data)
         db.session.add(msg)
-        user.add_notification('unread_message_count', user.unread_message_count())
+        user.add_notification('unread_message_count',
+                              user.unread_message_count())
         db.session.commit()
         flash(_('Your message has been sent.'))
         return redirect(url_for('user.messages'))
     return render_template('send_message.html', title=_('Send Message'), form=form, recipient=recipient)
+
 
 @user_bp.route('/messages')
 @login_required
