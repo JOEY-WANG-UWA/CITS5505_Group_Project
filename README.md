@@ -53,6 +53,6 @@ To run the tests for the application, follow these steps:
     python -m unittest selenium_test.py
     ```
 ## Test account
-Username:susan
-Password:susan
+**Username:susan
+**Password:susan
     
