@@ -53,6 +53,6 @@ To run the tests for the application, follow these steps:
     python -m unittest selenium_test.py
     ```
 ### Test account:
-- **email:** `admin@helloflask.com`
-- **password:** `helloflask`
+- **Username:** `susan`
+- **password:** `susan`
     
