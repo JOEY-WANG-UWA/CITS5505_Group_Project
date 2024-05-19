@@ -57,6 +57,13 @@ def fetch_data_gallery():
 @main_bp.route('/gallery')
 def gallery():
     grouped_details = fetch_data_gallery()
+    if current_user.is_authenticated:
+        collected_items = Collection.query.filter_by(
+            user_id=current_user.id).all()
+        collected_upload_ids = {item.upload_id for item in collected_items}
+    else:
+        collected_upload_ids = set()
+
     comments_with_user = db.session.query(
         Upload.id,
         Comment.comment_content,
@@ -64,7 +71,7 @@ def gallery():
         User.username
     ).select_from(Comment).join(User).outerjoin(Upload, Upload.id == Comment.upload_id).all()
 
-    return render_template('main/gallery_view.html', grouped_details=grouped_details, comments_with_user=comments_with_user)
+    return render_template('main/gallery_view.html', grouped_details=grouped_details, comments_with_user=comments_with_user, collected_upload_ids=collected_upload_ids)
 
 
 @main_bp.route('/add_to_collection/<int:upload_id>', methods=['POST'])
