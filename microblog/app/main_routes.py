@@ -57,8 +57,13 @@ def fetch_data_gallery():
 @main_bp.route('/gallery')
 def gallery():
     grouped_details = fetch_data_gallery()
-    collected_items = Collection.query.filter_by(user_id=current_user.id).all()
-    collected_upload_ids = {item.upload_id for item in collected_items}
+    if current_user.is_authenticated:
+        collected_items = Collection.query.filter_by(
+            user_id=current_user.id).all()
+        collected_upload_ids = {item.upload_id for item in collected_items}
+    else:
+        collected_upload_ids = set()
+
     comments_with_user = db.session.query(
         Upload.id,
         Comment.comment_content,
