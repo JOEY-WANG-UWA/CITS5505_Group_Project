@@ -18,9 +18,9 @@
                 <img src="{{ url_for('static', filename='default.jpg') }}" class="card-img-top" alt="Default image">
                 {% endif %}
                 <h5 class="card-title">{{ details.title }}</h5>
-                <p class="creative-text">{{ details.username }}</p>
+                <p class="creative-text1">{{ details.username }}</p>
 
-                <i class="far fa-heart like-icon-{{ upload_id }} like-button" style="color: red;"
+                <i class="far fa-heart like-icon-{{ upload_id }}" style="color: red;"
                     data-upload-id="{{ upload_id }}"></i>
                 <span class="like-count-{{ upload_id }}">{{ details.collect_count }}</span>
                 <i class="far fa-comment comment-icon-{{ upload_id }} like-button" style="color: rgb(20, 86, 209);"

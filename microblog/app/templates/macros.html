@@ -5,11 +5,12 @@
     <div class="modal-dialog modal-dialog-centered" role="document">
         <div class="modal-content">
             <div class="modal-header">
-                <a href="{{ url_for('user.user', username=details.username) }}" style="display: inline-block;">
+                <a href="{{ url_for('user.user', username=details.username) }}"
+                    style="display: flex; align-items: center;">
                     <img src="{{ url_for('static', filename='img/avatar/' ~ details.avatar) }}"
                         alt="{{ details.username }}'s profile picture" class="img-fluid rounded-circle mr-2"
                         style="width: 50px; height: 50px;">
-                    <p class="creative-text">{{ details.username }}</p>
+                    <p class="creative-text2" style="margin: 0 0 0 10px;">{{ details.username }}</p>
                 </a>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
@@ -42,8 +43,8 @@
                     {% endif %}
                 </div>
                 {% endif %}
-                <h5 class="modal-title" id="mediaModalLabel{{ upload_id }}">{{ details.title }}</h5>
-                <p class="text-muted">{{ details.description }}</p>
+                <h5 class="card-title" id="mediaModalLabel{{ upload_id }}">{{ details.title }}</h5>
+                <p class="card-text">{{ details.description }}</p>
                 <!-- for collection -->
                 <div class="collect-content">
                     <i class="far fa-heart like-icon" style="color: red;" data-upload-id="{{ upload_id }}"></i>

@@ -9,17 +9,30 @@
   {% else %}
   <title>Welcome to OrangeBook</title>
   {% endif %}
+  <!-- Google Font -->
+  {% block css %}
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
+  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/user.css') }}">
+  {% endblock %}
+
+
 </head>
 
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ url_for('main.gallery') }}">OrangeBook</a>
+      <a class="navbar-brand" href="{{ url_for('main.gallery') }}">
+        <img src="{{ url_for('static', filename='img/logo1.png') }}" alt="Logo" style="height: 40px; width: auto;">
+
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -27,12 +40,10 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{{ url_for('main.gallery') }}" title="Home">
-              <i class="fas fa-home fa-lg"></i>
-            </a>
+            <a class="nav-link" aria-current="page" href="{{ url_for('main.gallery') }}">Home</a>
           </li>
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{{ url_for('main.circus') }}">Explore</a>
+            <a class="nav-link" aria-current="page" href="{{ url_for('main.circus') }}">Circus</a>
           </li>
         </ul>
         {% if g.search_form %}
@@ -52,7 +63,7 @@
           {% if current_user.is_anonymous %}
           <li class="nav-item">
             <a class="nav-link" aria-current="page" href="{{ url_for('main.login') }}" title="Log in">
-              <i class="fas fa-sign-in-alt fa-lg"></i>
+              <i class="fas fa-sign-in-alt fa-lg" title="Login"></i>
             </a>
           </li>
           <li class="nav-item">
@@ -77,8 +88,8 @@
             </a>
           </li>
           <li class="nav-item">
-            <a class="btn btn-orange" href="{{ url_for('user.upload') }}" title="Upload">
-              <i class="fas fa-cloud-upload-alt fa-lg"></i>
+            <a class="nav-link" aria-current="page" href="{{ url_for('user.upload') }}" title="Upload">
+              <i class="fas fa-cloud-upload-alt fa-lg" title="Upload"></i>
             </a>
           </li>
           <li class="nav-item">
@@ -101,102 +112,106 @@
           alt="{{ user.username }}'s profile picture" class="profile-pic">
       </div>
       <div class="profile-info ml-3">
-        <h3>{{ user.username }}</h3>
-        <p>ID: {{ user.id }}</p>
-        <p>Location: {{ user.location }}</p>
+        <p class="creative-text">{{ user.username }}</p>
+        <p><strong>ID:</strong> {{ user.id }}</p>
+        <p><strong>Location:</strong> {{ user.location }}</p>
         {% if user.about_me %}
-        <p>About Me: {{ user.about_me }}</p>
+        <p><strong>About Me:</strong> {{ user.about_me }}</p>
         {% endif %}
-        <p>{{ user.followers_count() }} followers, {{ user.following_count() }} following.</p>
+        <p>{{ user.followers_count() }} <strong>followers,</strong> {{ user.following_count() }}
+          <strong>following.</strong>
+        </p>
         <!-- Profile Actions -->
         {% if user == current_user %}
-        <p><a href="{{ url_for('user.edit_profile') }}">Edit your profile</a></p>
-        {% elif not current_user.is_following(user) %}
-        <p>
-        <form action="{{ url_for('user.follow', username=user.username) }}" method="post">
-          {{ form.hidden_tag() }}
-          {{ form.submit(value='Follow', class_='btn btn-primary') }}
-        </form>
-        </p>
-        {% else %}
-        <p>
-        <form action="{{ url_for('user.unfollow', username=user.username) }}" method="post">
-          {{ form.hidden_tag() }}
-          {{ form.submit(value='Unfollow', class_='btn btn-primary') }}
-        </form>
-        </p>
-        {% endif %}
-        <!-- Send Message Button -->
-        {% if user.id != current_user.id %}
-        <p>
-          <a href="{{ url_for('user.send_message', recipient=user.username) }}" class="btn btn-primary">
-            Send Message
-          </a>
-        </p>
-        {% endif %}
+        <div class="orange-word">
+          <a href="{{ url_for('user.edit_profile') }}">Edit your profile</a>
+          </p>
+          {% elif not current_user.is_following(user) %}
+          <p>
+          <form action="{{ url_for('user.follow', username=user.username) }}" method="post">
+            {{ form.hidden_tag() }}
+            {{ form.submit(value='Follow', class_='btn-orange') }}
+          </form>
+          </p>
+          {% else %}
+          <p>
+          <form action="{{ url_for('user.unfollow', username=user.username) }}" method="post">
+            {{ form.hidden_tag() }}
+            {{ form.submit(value='Unfollow', class_='btn-orange') }}
+          </form>
+          </p>
+          {% endif %}
+          <!-- Send Message Button -->
+          {% if user.id != current_user.id %}
+          <p>
+            <a href="{{ url_for('user.send_message', recipient=user.username) }}" class="btn-orange">
+              Send Message
+            </a>
+          </p>
+          {% endif %}
+        </div>
       </div>
     </div>
-  </div>
 
-  <!-- JavaScript -->
-  <script>
+    <!-- JavaScript -->
+    <script>
 
-    document.addEventListener('DOMContentLoaded', function () {
-      const likeButtons = document.querySelectorAll('.like-icon');
-      likeButtons.forEach(button => {
-        button.addEventListener('click', function () {
-          const uploadId = this.getAttribute('data-upload-id');
-          console.log(`Toggling like for upload ID: ${uploadId}`);
+      document.addEventListener('DOMContentLoaded', function () {
+        const likeButtons = document.querySelectorAll('.like-icon');
+        likeButtons.forEach(button => {
+          button.addEventListener('click', function () {
+            const uploadId = this.getAttribute('data-upload-id');
+            console.log(`Toggling like for upload ID: ${uploadId}`);
 
 
-          fetch(`/add_to_collection/${uploadId}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
+            fetch(`/add_to_collection/${uploadId}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json'
 
-            },
-            credentials: 'include',
-            body: JSON.stringify({})
-          }).then(response => {
-            if (!response.ok) {
+              },
+              credentials: 'include',
+              body: JSON.stringify({})
+            }).then(response => {
+              if (!response.ok) {
 
-              console.error(`HTTP error! status: ${response.status}`);
-              return response.text().then(text => { throw new Error(text); });
-            }
-            return response.json();
-          }).then(data => {
-            console.log('Response data:', data);
-            if (data.success) {
-              // Select all like count elements for this uploadId
-              const countElements = document.querySelectorAll(`.like-count-${uploadId}`);
-              // Update the class for all matching heart icons too
-              const heartIcons = document.querySelectorAll(`.like-icon-${uploadId}`);
-
-              if (data.liked) {
-                heartIcons.forEach(icon => {
-                  icon.classList.remove('far');
-                  icon.classList.add('fas');
-                });
-                alert('Added to collection!');
-              } else {
-                heartIcons.forEach(icon => {
-                  icon.classList.remove('fas');
-                  icon.classList.add('far');
-                });
-                alert('Removed from collection!');
+                console.error(`HTTP error! status: ${response.status}`);
+                return response.text().then(text => { throw new Error(text); });
               }
-              countElements.forEach(element => {
-                element.textContent = data.newCount;
-              });
-            } else {
-              alert(data.message);
-            }
-          })
-            .catch(error => console.error('Error:', error));
+              return response.json();
+            }).then(data => {
+              console.log('Response data:', data);
+              if (data.success) {
+                // Select all like count elements for this uploadId
+                const countElements = document.querySelectorAll(`.like-count-${uploadId}`);
+                // Update the class for all matching heart icons too
+                const heartIcons = document.querySelectorAll(`.like-icon-${uploadId}`);
+
+                if (data.liked) {
+                  heartIcons.forEach(icon => {
+                    icon.classList.remove('far');
+                    icon.classList.add('fas');
+                  });
+                  alert('Added to collection!');
+                } else {
+                  heartIcons.forEach(icon => {
+                    icon.classList.remove('fas');
+                    icon.classList.add('far');
+                  });
+                  alert('Removed from collection!');
+                }
+                countElements.forEach(element => {
+                  element.textContent = data.newCount;
+                });
+              } else {
+                alert(data.message);
+              }
+            })
+              .catch(error => console.error('Error:', error));
+          });
         });
       });
-    });
-  </script>
-  <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
-  {% endblock %}
+    </script>
+    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.2/dist/js/bootstrap.bundle.min.js"></script>
+    {% endblock %}

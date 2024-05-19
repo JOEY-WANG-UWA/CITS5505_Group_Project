@@ -1,4 +1,3 @@
-
 {% from 'bootstrap5/pagination.html' import render_pagination %}
 {% include 'user1.html' %}
 {% block content %}
@@ -35,30 +34,35 @@
 <div class="container mt-3">
     <div class="row">
         {% if following %}
-            <h3>{{ user.username }} is following:</h3>
-            {% for person in following %}
-                <div class="col-md-4">
-                    <div class="card mb-3">
-                        <div class="card-body">
+        <h5>{{ user.username }} is following:</h5>
+        {% for person in following %}
+        <div class="col-md-4">
 
-                            <img src="{{ url_for('static', filename='img/avatar/' ~ person.avatar) }}" alt="{{ person.username }}'s Profile Image" class="img-fluid rounded-circle mb-2" style="width: 50px; height: 50px;">
-                            <h5 class="card-title">{{ person.username }}</h5>
-                            <a href="{{ url_for('user.user', username=person.username) }}" class="btn btn-primary">View Profile</a>
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="alert alert-info" role="alert">
-                {{ user.username }} is not following anyone.
+            <div class="card-body_f">
+
+                <img src="{{ url_for('static', filename='img/avatar/' ~ person.avatar) }}"
+                    alt="{{ person.username }}'s Profile Image" class="img-fluid rounded-circle mb-2"
+                    style="width: 50px; height: 50px;">
+                <h5 class="creative-text1">{{ person.username }}</h5>
+                <a href="{{ url_for('user.user', username=person.username) }}" class="btn-orange">View Profile</a>
             </div>
+
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="alert alert-info" role="alert">
+            {{ user.username }} is not following anyone.
+        </div>
         {% endif %}
     </div>
 </div>
 
-<div class="page-footer">
-    {{ render_pagination(pagination) }}
+<div class="row">
+    <div class="col-12">
+        <div class="page-footer">
+            {{ render_pagination(pagination) }}
+        </div>
+    </div>
 </div>
 
 {% endblock %}
-

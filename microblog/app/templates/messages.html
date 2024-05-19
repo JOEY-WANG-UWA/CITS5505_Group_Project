@@ -2,16 +2,16 @@
 
 {% block content %}
 <div class="container mt-5">
-  <h1>Messages</h1>
+  <p class="creative-text3">Messages</p>
   <div class="list-group">
     {% for message in messages %}
     <div class="list-group-item d-flex justify-content-between align-items-center">
       <div>
-        <h5 class="mb-1">{{ message.author.username }}</h5>
-        <p class="mb-1">{{ message.body }}</p>
-        <small class="text-muted">{{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
+        <h5 class="creative-text1">{{ message.author.username }}</h5>
+        <p class="message-body">{{ message.body }}</p>
+        <small class="message-timestamp">{{ message.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</small>
       </div>
-      <a href="{{ url_for('user.send_message', recipient=message.author.username) }}" class="btn btn-primary">
+      <a href="{{ url_for('user.send_message', recipient=message.author.username) }}" class="btn-orange">
         Reply
       </a>
     </div>

@@ -34,28 +34,28 @@
         {% if results %}
         {% for item in results %}
         <div class="col-md-4">
-            <div class="note-card">
-                <div class="card">
-                    <img class="card-img-top" src="{{ url_for('static', filename='img/' ~ item['items'][0]) }}"
-                        alt="Card image cap" data-toggle="modal" data-target="#mediaModal{{ item.upload_id }}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ item['title'] }}</h5>
-                        <div class="card-footer d-flex align-items-center justify-content-between">
-                            <div class="d-flex align-items-center">
-                                <img src="{{ url_for('static', filename='img/avatar/' ~ user.avatar) }}"
-                                    alt="{{ user.username }}'s avatar" class="img-fluid rounded-circle mr-2"
-                                    style="width: 50px; height: 50px;">
-                                <small class="text-muted mr-2">{{ user.username }}</small>
-                            </div>
-                            <div class="d-flex align-items-center">
-                                <i class="far fa-heart like-icon-{{ upload_id }} like-button"" style=" color: red;
-                                    margin-right: 5px;" data-upload-id="{{ item.upload_id }}"></i>
-                                <small class="text-muted mr-2">{{ item['collect_count'] }}</small>
-                            </div>
-                        </div>
+
+            <div class="card-body">
+                <img class="card-img-top" src="{{ url_for('static', filename='img/' ~ item['items'][0]) }}"
+                    alt="Card image cap" data-toggle="modal" data-target="#mediaModal{{ item.upload_id }}">
+
+                <h5 class="card-title">{{ item['title'] }}</h5>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <div class="d-flex align-items-center">
+                        <img src="{{ url_for('static', filename='img/avatar/' ~ user.avatar) }}"
+                            alt="{{ user.username }}'s avatar" class="img-fluid rounded-circle mr-2"
+                            style="width: 50px; height: 50px;">
+                        <small class="creative-text1">{{ user.username }}</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <i class="far fa-heart like-icon-{{ upload_id }} like-button"" style=" color: red; margin-right:
+                            5px;" data-upload-id="{{ item.upload_id }}"></i>
+                        <small class="text-muted mr-2">{{ item['collect_count'] }}</small>
                     </div>
                 </div>
+
             </div>
+
         </div>
         {{ render_modal1(item.upload_id, item, comments_with_user) }}
         {% endfor %}
@@ -65,7 +65,7 @@
     </div>
     <!-- Pagination -->
     <div class="row">
-        <div class="col-12">
+        <div class="col-12 orange-word">
             {{ pagination.links }}
         </div>
     </div>
