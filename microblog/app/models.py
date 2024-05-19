@@ -14,6 +14,7 @@ from time import time
 import jwt
 import json
 from time import time
+from flask import current_app as app
 
 followers = sa.Table(
     'followers',
