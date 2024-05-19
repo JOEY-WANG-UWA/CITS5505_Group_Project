@@ -20,21 +20,15 @@ To launch the application, follow these steps:
     cd CITS5505_Group_Project
     ```
 
-2. **Create and activate a virtual environment**:
+2. **Create and activate a virtual environment & Install the required dependencies**:
     ```bash
     python -m venv venv
     source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+    pip install -r requirements.txt
     ```
-
-3. **Install the required dependencies**:
+3. **Run the application**:
     ```bash
-    cd microblog
-    pip install -r requirements1.txt
-    ```
-
-4. **Run the application**:
-    ```bash
-    cd app
+    cd microblog/app
     flask run
     ```
 
@@ -49,6 +43,7 @@ To run the tests for the application, follow these steps:
     ```
 2. **Run the tests using pytest**:
     ```bash
+    cd microblog
     python -m unittest unit.py
     python -m unittest selenium_test.py
     ```
