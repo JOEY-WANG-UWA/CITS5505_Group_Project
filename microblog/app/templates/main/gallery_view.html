@@ -10,7 +10,6 @@
         {% for upload_id,details in grouped_details.items() %}
         <div class="masonry-item card mb-3">
             <div class="card-body">
-                <!-- Check if there are details for the current upload and if it has at least one item -->
                 {% if details.items %}
                 <img src="{{ url_for('static', filename='img/' + details['items'][0]) }}" class="card-img-top"
                     alt="Image for {{ details.title }}" data-toggle="modal" data-target="#mediaModal{{ upload_id }}">
@@ -19,11 +18,11 @@
                 {% endif %}
                 <h5 class="card-title">{{ details.title }}</h5>
                 <p class="creative-text1">{{ details.username }}</p>
-
-                <i class="far fa-heart like-icon-{{ upload_id }}" style="color: red;"
-                    data-upload-id="{{ upload_id }}"></i>
+                <i class="fa-heart like-icon-{{ upload_id }} {% if upload_id in collected_upload_ids %}fas{% else %}far{% endif %}"
+                    style="color: red;" data-upload-id="{{ upload_id }}"></i>
                 <span class="like-count-{{ upload_id }}">{{ details.collect_count }}</span>
-                <i class="far fa-comment comment-icon-{{ upload_id }} like-button" style="color: rgb(20, 86, 209);"
+
+                <i class="far fa-comment comment-icon" style="color: rgb(20, 86, 209);"
                     data-upload-id="{{ upload_id }}"></i>
                 <span class="comment-count-{{ upload_id }}">{{ details.comment_count }}</span>
                 <!-- Use the macro to render the modal -->
