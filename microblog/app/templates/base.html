@@ -16,9 +16,9 @@
     integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/dropzone/5.9.3/min/dropzone.min.css">
-  <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
   {% endblock %}
 
@@ -28,7 +28,11 @@
 <body>
   <nav class="navbar navbar-expand-lg navbar-light bg-light">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ url_for('main.gallery') }}">OrangeBook</a>
+
+      <a class="navbar-brand" href="{{ url_for('main.gallery') }}">
+        <img src="{{ url_for('static', filename='img/logo1.png') }}" alt="Logo" style="height: 40px; width: auto;">
+
+      </a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent"
         aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
         <span class="navbar-toggler-icon"></span>
@@ -36,8 +40,8 @@
       <div class="collapse navbar-collapse" id="navbarSupportedContent">
         <ul class="navbar-nav me-auto mb-2 mb-lg-0">
           <li class="nav-item">
-            <a class="nav-link" aria-current="page" href="{{ url_for('main.gallery') }}" title="Home">
-              <i class="fas fa-home fa-lg"></i>
+            <a class="nav-link" aria-current="page" href="{{ url_for('main.gallery') }}">Home</a>
+
             </a>
           </li>
           <li class="nav-item">
@@ -61,12 +65,12 @@
           {% if current_user.is_anonymous %}
           <li class="nav-item">
             <a class="nav-link" aria-current="page" href="{{ url_for('main.login') }}" title="Log in">
-              <i class="fas fa-sign-in-alt fa-lg"></i>
+              <i class="fas fa-sign-in-alt fa-lg" title="Login"></i>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" aria-current="page" href="{{ url_for('main.register') }}" title="Sign up">
-              <i class="fas fa-user-plus fa-lg"></i>
+              <i class="fas fa-user-plus fa-lg" title="Sign up"></i>
             </a>
           </li>
           {% else %}
@@ -87,12 +91,12 @@
           </li>
           <li class="nav-item">
             <a class="nav-link" aria-current="page" href="{{ url_for('user.upload') }}" title="Upload">
-              <i class="fas fa-cloud-upload-alt fa-lg"></i>
+              <i class="fas fa-cloud-upload-alt fa-lg" title="Upload"></i>
             </a>
           </li>
           <li class="nav-item">
             <a class="nav-link" aria-current="page" href="{{ url_for('main.logout') }}" title="Log out">
-              <i class="fas fa-sign-out-alt fa-lg"></i>
+              <i class="fas fa-sign-out-alt fa-lg" title="Logout"></i>
             </a>
           </li>
           {% endif %}
@@ -100,19 +104,7 @@
       </div>
     </div>
   </nav>
-  <div class="menu">
-    <a href="#" class="menu-item highlight">Recommendation</a>
-    <a href="#" class="menu-item">Fashion</a>
-    <a href="#" class="menu-item">Food</a>
-    <a href="#" class="menu-item">Makeup</a>
-    <a href="#" class="menu-item">Movies</a>
-    <a href="#" class="menu-item">Career</a>
-    <a href="#" class="menu-item">Home Decoration</a>
-    <a href="#" class="menu-item">Games</a>
-    <a href="#" class="menu-item">Travel</a>
-    <a href="#" class="menu-item">Fitness</a>
-  </div>
-  <script src="https://kit.fontawesome.com/a076d05399.js"></script>
+
   <div class="container mt-3">
     {% with messages = get_flashed_messages() %}
     {% if messages %}
@@ -215,8 +207,6 @@
       likeButtons.forEach(button => {
         button.addEventListener('click', function () {
           const uploadId = this.getAttribute('data-upload-id');
-          console.log(`Toggling like for upload ID: ${uploadId}`);
-
 
           fetch(`/add_to_collection/${uploadId}`, {
             method: 'POST',

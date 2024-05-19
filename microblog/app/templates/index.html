@@ -2,33 +2,33 @@
 {% import "bootstrap_wtf.html" as wtf %}
 
 {% block content %}
-    {# Properly greet authenticated and unauthenticated users #}
-    <h1>Hi, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Guest{% endif %}!</h1>
+{# Properly greet authenticated and unauthenticated users #}
+<p class="creative-text3">Hi, {% if current_user.is_authenticated %}{{ current_user.username }}{% else %}Guest{% endif
+    %}!</p>
 
-    {# Render form if it exists using Flask-WTF and bootstrap_wtf #}
-    {% if form %}
-        {{ wtf.quick_form(form) }}
-    {% endif %}
+{# Render form if it exists using Flask-WTF and bootstrap_wtf #}
+{% if form %}
+{{ wtf.quick_form(form) }}
+{% endif %}
 
-    {# Iterate over posts and include a template for displaying each post #}
-    {% for post in posts %}
-        {% include '_post.html' %}
-    {% endfor %}
+{# Iterate over posts and include a template for displaying each post #}
+{% for post in posts %}
+{% include '_post.html' %}
+{% endfor %}
 
-    {# Pagination navigation #}
-    <nav aria-label="Post navigation">
-        <ul class="pagination">
-            <li class="page-item{% if not prev_url %} disabled{% endif %}">
-                <a class="page-link" href="{{ prev_url }}" aria-disabled="{{ 'true' if not prev_url else 'false' }}">
-                    <span aria-hidden="true">&larr;</span> Newer posts
-                </a>
-            </li>
-            <li class="page-item{% if not next_url %} disabled{% endif %}">
-                <a class="page-link" href="{{ next_url }}" aria-disabled="{{ 'true' if not next_url else 'false' }}">
-                    Older posts <span aria-hidden="true">&rarr;</span>
-                </a>
-            </li>
-        </ul>
-    </nav>
+{# Pagination navigation #}
+<nav aria-label="Post navigation">
+    <ul class="pagination">
+        <li class="page-item{% if not prev_url %} disabled{% endif %}">
+            <a class="page-link" href="{{ prev_url }}" aria-disabled="{{ 'true' if not prev_url else 'false' }}">
+                <span aria-hidden="true">&larr;</span> Newer posts
+            </a>
+        </li>
+        <li class="page-item{% if not next_url %} disabled{% endif %}">
+            <a class="page-link" href="{{ next_url }}" aria-disabled="{{ 'true' if not next_url else 'false' }}">
+                Older posts <span aria-hidden="true">&rarr;</span>
+            </a>
+        </li>
+    </ul>
+</nav>
 {% endblock %}
-
