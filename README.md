@@ -47,13 +47,8 @@ To run the tests for the application, follow these steps:
     ```bash
     source venv/bin/activate
     ```
-
-2. **Navigate to the tests directory**:
+2. **Run the tests using pytest**:
     ```bash
-    cd test
-    ```
-
-3. **Run the tests using pytest**:
-    ```bash
-    pytest
+    python -m unittest unit.py
+    python -m unittest selenium_test.py
     ```
